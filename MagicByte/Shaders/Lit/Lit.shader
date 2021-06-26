@@ -38,11 +38,11 @@
 
 		[Enum(Off, 0, On, 1)] _UseClearCoat("Clear Coat", Float) = 0
 
-		_MicroFlakesAmount("MicroFlakes Amount", int) = 0
+		/*_MicroFlakesAmount("MicroFlakes Amount", int) = 0
 		_MicroFlakesTile("Micro Flakes Tile", Float) = 0
-		_MicroFlakesAnim("Micro Flakes Animation", Float) = 0
+		_MicroFlakesAnim("Micro Flakes Animation", Float) = 0*/
 		_clearCoatRoughness("Clear Coat Roughness", Range(0.5, 1)) = 1
-		[HDR] _MicroFlakesColor("Micro Flakes Color", Color) = (0.5, 0.5, 0.5, 1.0)
+		/*[HDR] _MicroFlakesColor("Micro Flakes Color", Color) = (0.5, 0.5, 0.5, 1.0)*/
 		_ClearCoat("Clear Coat", Range(0, 1)) = 1
 
 		//[Toggle(_PREMULTIPLY_ALPHA)] _PremulAlpha ("Premultiply Alpha", Float) = 0

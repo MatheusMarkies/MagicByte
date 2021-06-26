@@ -1,6 +1,6 @@
 ﻿#ifndef CUSTOM_GI_INCLUDED
 #define CUSTOM_GI_INCLUDED
-
+//https://github.com/TwoTailsGames/Unity-Built-in-Shaders/blob/master/CGIncludes/UnityGlobalIllumination.cginc
 #include "../Unity-RenderPipelineCore/ShaderLibrary/EntityLighting.hlsl"
 #include "../Unity-RenderPipelineCore/ShaderLibrary/ImageBasedLighting.hlsl"
 

@@ -1,100 +1,107 @@
-﻿using UnityEngine;
-using UnityEngine.Rendering;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
-public class PostProcessingStack
+using UnityEngine;
+using UnityEngine.Rendering;
+namespace MagicByte
 {
-
-	const string bufferName = "PostProcessingEffects";
-	int fxSourceId = Shader.PropertyToID("_PostFXSource"),
-	fxSource2Id = Shader.PropertyToID("_PostFXSource2");
-	CommandBuffer buffer = new CommandBuffer
+	public class PostProcessingStack
 	{
-		name = bufferName
-	};
+		int fxSourceId = Shader.PropertyToID("_PostFXSource");
+		CommandBuffer buffer = new CommandBuffer { name = "Post Processing Workflow" };
+		ScriptableRenderContext context;
 
-	ScriptableRenderContext context;
+		int pathTracingID = Shader.PropertyToID("_PathTracingFrame");
 
-	Camera camera;
+		CommandBuffer bufferPT = new CommandBuffer { name = "Path Tracing" };
+		RenderTexture rt;
+		public void setRenderContext(ScriptableRenderContext context)
+		{ this.context = context; }
 
-	public bool IsActive = true;
-	int effectsID;
-	void createPostProcessingStack(PostProcessingCamera PPC)
-	{
-		effectsID = Shader.PropertyToID("_Effect0");
-		for (int i = 1; i < PPC.getMaterialList().Count; i++)
+		public void postProcessingDrawing(List<Effect> effects, int sourceId,Camera camera,List<RenderTexture> RTs)
 		{
-			Shader.PropertyToID("_Effect" + i);
+			bufferPT.BeginSample("Path tracing Render");
+
+			if (RTs.Count > 0)
+			{
+				bufferPT.SetGlobalTexture(pathTracingID, RenderTexturetoTexture2D(RTs[0]));
+				bufferPT.SetGlobalFloat("_usePathTracing",1);
+			}else
+				bufferPT.SetGlobalFloat("_usePathTracing", 0);
+
+			bufferPT.EndSample("Path tracing Render");
+			context.ExecuteCommandBuffer(bufferPT);
+			bufferPT.Clear();
+
+            startRenderPass(effects, sourceId, camera);
+            context.ExecuteCommandBuffer(buffer);
+            buffer.Clear();
+        }
+		Texture2D RenderTexturetoTexture2D(RenderTexture rTex)
+		{
+			Texture2D tex = new Texture2D(512, 512, TextureFormat.RGB24, false);
+
+			RenderTexture.active = rTex;
+			tex.ReadPixels(new Rect(0, 0, rTex.width, rTex.height), 0, 0);
+			tex.Apply();
+			return tex;
 		}
-	}
-
-	public void Setup(ScriptableRenderContext context, Camera camera)
-	{
-		this.context = context;
-		this.camera = camera;
-	}
-
-	public void PostProcessingDrawing(PostProcessingCamera PPC, int sourceId)
-	{
-		createStack(PPC, sourceId);
-		List<EffectObject> effects = PPC.getMaterialList();
-		for (int i = 0; i < effects.Count; i++)
-		effects[i].OnExecuteBuffer(sourceId, (int)BuiltinRenderTextureType.CameraTarget, effects[i].material, camera, buffer);
-		context.ExecuteCommandBuffer(buffer);
-		buffer.Clear();
-	}
-
-	public void Drawing(RenderTargetIdentifier from, RenderTargetIdentifier to, Material material, int pass)
-	{
-		buffer.SetGlobalTexture(fxSourceId, from);
-		buffer.SetRenderTarget(to, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
-		buffer.DrawProcedural(Matrix4x4.identity, material, pass,MeshTopology.Triangles, 3);
-		
-		buffer.ReleaseTemporaryRT(fxSourceId);
-	}
-	public void Drawing(RenderTargetIdentifier from, RenderTargetIdentifier to, int pass)
-	{
-		buffer.SetGlobalTexture(fxSourceId, from);
-		buffer.SetRenderTarget(to, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
-		buffer.DrawProcedural(Matrix4x4.identity, null, pass, MeshTopology.Triangles, 3);
-
-		buffer.ReleaseTemporaryRT(fxSourceId);
-	}
-
-
-	void createStack(PostProcessingCamera PPC, int sourceId)
-    {
-		createPostProcessingStack(PPC);
-
-		buffer.BeginSample("ProcessingEffects");
-		List<EffectObject> effects = PPC.getMaterialList();
-
-		int fromId = sourceId, toId = effectsID;
-
-		for (int i = 0;i < effects.Count;i++)
+		public void drawingEffect(RenderTargetIdentifier from, RenderTargetIdentifier to, Material material, int pass,Camera camera)
 		{
-			buffer.GetTemporaryRT(toId, camera.pixelWidth, camera.pixelHeight, 0, FilterMode.Bilinear, RenderTextureFormat.DefaultHDR);
+			buffer.GetTemporaryRT(fxSourceId, camera.pixelWidth, camera.pixelHeight, 0, FilterMode.Bilinear, RenderTextureFormat.DefaultHDR);
 
-			effects[i].toID = toId;
-			effects[i].fromID = fromId;
-			effects[i].postProcessingStack = this;
+			buffer.SetGlobalTexture(fxSourceId, from);
+			//buffer.SetGlobalTexture(fxSourceId, RenderTexturetoTexture2D(RenderTexture rTex));
+			buffer.SetRenderTarget(to, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
+			buffer.DrawProcedural(Matrix4x4.identity, material, pass, MeshTopology.Triangles, 3);
 
-			effects[i].OnStackedEffect(fromId, toId, effects[i].material, camera, buffer);
+			buffer.ReleaseTemporaryRT(fxSourceId);
+		}
+		//Mono Pass
+		int effectsID;
+		void stackedEffects(List<Effect> effects)
+		{
+			int offset = 0;
+			effectsID = Shader.PropertyToID("_Effect0");
 
-			//fromId = toId;
-			fromId = effects[i].toID;
-			toId += 1;
+			for (int i = 0; i < effects.Count; i++)
+			{
+				for (int o = 1; o < effects[i].passes; o++)
+				{
+					if (i > 0)
+					{
+						for (int u = 0; u < i - 1; u++)
+							offset += effects[u].passes;
+						Shader.PropertyToID("_Effect" + offset + o);
+					}
+					else
+						Shader.PropertyToID("_Effect" + o);
+				}
+			}
 		}
 
-		for (int i = 0; i < effects.Count; i++)
-			effects[i].OnRelease(buffer,effects[i].material);
+		void startRenderPass(List<Effect> effects, int sourceId,Camera camera) 
+		{
+			stackedEffects(effects);
 
-		//buffer.SetGlobalTexture(fxSource2Id, sourceId);
-		Drawing(fromId, BuiltinRenderTextureType.CameraTarget, new Material(Shader.Find("Hidden/Standard")), 0);
-		buffer.ReleaseTemporaryRT(fromId);
+			int fromId = sourceId, toId = effectsID;
 
-		buffer.EndSample("ProcessingEffects");
+			int i;
+			for (i = 0; i < effects.Count; i++)
+			{
+				buffer.GetTemporaryRT(toId, camera.pixelWidth, camera.pixelHeight, 0, FilterMode.Bilinear, RenderTextureFormat.DefaultHDR);
+
+				effects[i].renderPasses(this, buffer, fromId, toId, camera);
+
+				fromId = effects[i].ToID;
+				toId += effects[i].passes;
+			}
+
+			drawingEffect(fromId, BuiltinRenderTextureType.CameraTarget, new Material(Shader.Find("Hidden/Standard")), 0,camera);
+			for(int o = i; o > 0; o--)
+            {
+				buffer.ReleaseTemporaryRT(toId - o);
+            }
+		}
+
 	}
-
-
 }

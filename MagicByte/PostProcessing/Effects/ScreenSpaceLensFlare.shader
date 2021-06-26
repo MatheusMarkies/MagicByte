@@ -15,11 +15,11 @@
             HLSLPROGRAM
             #pragma target 3.5
                 #pragma vertex DefaultPassVertex
-                #pragma fragment Thresholder
+                #pragma fragment thresholder
             #include "ScreamSpaceLensFlare.hlsl"
             ENDHLSL
         }
-                Pass{
+        Pass{
             HLSLPROGRAM
             #pragma target 3.5
                 #pragma vertex DefaultPassVertex
@@ -27,5 +27,6 @@
             #include "ScreamSpaceLensFlare.hlsl"
             ENDHLSL
         }
+               
     }
 }

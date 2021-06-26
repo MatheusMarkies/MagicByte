@@ -31,7 +31,8 @@
 		//_AnisotropicX("AnisotropicX", Range(-1,1)) = 0.0
 		//_AnisotropicY("AnisotropicY", Range(-1,1)) = 0.0
 		//_Fresnel("Reflectance", Range(0,3)) = 0.0
-
+					_ScatteringAmplitude("Scattering Amplitude",Range(0.2,2)) = 1
+		_ScatteringScale("Scattering Scale",Range(0.5,5)) = 2
 		_AnisotropicScale("Hair Anisotropic Scale", Range(0,2)) = 0.0
 		_SecondAnisotropicScale("Second Hair Anisotropic Scale", Range(2,0)) = 0.0
         _AnisotropicColor("Hair Anisotropic Color", Color) = (0.5, 0.5, 0.5, 1.0)

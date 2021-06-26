@@ -27,6 +27,10 @@
             SAMPLER(sampler_PostFXSource);
             SAMPLER(sampler_linear_clamp);
 
+            float _usePathTracing = 0;
+            TEXTURE2D(_PathTracingFrame);
+            SAMPLER(sampler_PathTracingFrame);
+
             struct appdata
             {
                 float4 vertex : POSITION;
@@ -58,10 +62,17 @@
 float4 GetSource(float2 fxUV) {
     return SAMPLE_TEXTURE2D(_PostFXSource, sampler_PostFXSource, fxUV);
 }
+float4 GetSourcePathTracing(float2 fxUV) {
+    return SAMPLE_TEXTURE2D(_PathTracingFrame, sampler_PathTracingFrame, fxUV);
+}
 float4 frag (Varyings i) : SV_Target
 {
                 float4 color = GetSource(i.fxUV);
-                return SAMPLE_TEXTURE2D_LOD(_PostFXSource, sampler_linear_clamp, i.fxUV, 0);
+
+                if(_usePathTracing == 1)
+                color = GetSourcePathTracing(i.fxUV/4);
+
+                return color;
                 //return color;
             }
             ENDHLSL

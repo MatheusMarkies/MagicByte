@@ -17,7 +17,7 @@
 		[Enum(Smoothness, 0, Roughness, 1)] _UseRoughness("Smoothness/Roughness", Float) = 0
 		[NoScaleOffset] _SmoothnessMap("Smoothness Map(Specular)", 2D) = "white" {}
 		[NoScaleOffset] _MetalMap("Metallic Map", 2D) = "white" {}
-
+		_Scattering("Scattering",Range(0,1))=1
 		//[NoScaleOffset] _DetailSmoothness("Detail Smoothness", Range(0, 1)) = 1
 		[NoScaleOffset] _EmissionMap("Emission", 2D) = "white" {}
 		[HDR] _EmissionColor("Emission", Color) = (0.0, 0.0, 0.0, 0.0)

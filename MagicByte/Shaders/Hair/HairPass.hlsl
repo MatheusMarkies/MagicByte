@@ -50,7 +50,8 @@ float3 _AnisotropicColor;
 float _AnisotropicScale;
 float _SecondAnisotropicScale;
 float _specularIntensity;
-
+float _ScatteringAmplitude;
+float _ScatteringScale;
 TEXTURE2D(_HairLightRamp);
 SAMPLER(sampler_HairLightRamp);
 
@@ -62,11 +63,19 @@ float3 GetLightingHair(Surface surfaceWS, BRDF brdf, GI gi, float3 specularColor
 	for (int i = 0; i < GetDirectionalLightCount(); i++) {
 		Light light = GetDirectionalLight(i, surfaceWS, shadowData);
 		color += GetLightingHair(surfaceWS, brdf, light, specularColor1, specularColor2, exp1, exp2, specularIntensity, ramp);
+		float3 lightDir = light.direction + surfaceWS.normal;
+		float3 translucency = (pow(saturate(dot(surfaceWS.viewDirection, -lightDir)), _ScatteringAmplitude) * _ScatteringScale + gi.diffuse * 1) *light.attenuation; //* light.distanceAttenuation;
+		// color += scattering * (light.color * 1.5) + surfaceWS.color * scattering;
+		color += surfaceWS.color * light.color * translucency;
 	}
 
 	for (int j = 0; j < GetOtherLightCount(); j++) {
 		Light light = GetOtherLight(j, surfaceWS, shadowData);
 		color += GetLightingHair(surfaceWS, brdf, light, specularColor1, specularColor2, exp1, exp2, specularIntensity, ramp);
+		float3 lightDir = light.direction + surfaceWS.normal;
+		float3 translucency = (pow(saturate(dot(surfaceWS.viewDirection, -lightDir)), _ScatteringAmplitude) * _ScatteringScale + gi.diffuse * 1) *light.attenuation; //* light.distanceAttenuation;
+		// color += scattering * (light.color * 1.5) + surfaceWS.color * scattering;
+		color += surfaceWS.color * light.color * translucency;
 	}
 
 	return color;

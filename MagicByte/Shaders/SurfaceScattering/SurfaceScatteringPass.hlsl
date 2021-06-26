@@ -95,20 +95,20 @@ Surface Scattering;
 Scattering.position = input.positionWS;
 
 float2 NormalUV = input.baseUV;
-float2 NormalSecUV = input.baseUV * UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _DetailNormalUV);
+//float2 NormalSecUV = input.baseUV * UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _DetailNormalUV);
 
 float4 Nmap = SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, NormalUV);
 float scale = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _NormalStrength);
 float3 normalMain = DecodeNormal(Nmap, scale);
 
-float4 NmapSec = SAMPLE_TEXTURE2D(_DetailNormalMap, sampler_DetailNormalMap, NormalSecUV);
-float scaleSec = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _DetailNormalStrength);
-float3 normalSec = DecodeNormal(NmapSec, scaleSec);
+//float4 NmapSec = SAMPLE_TEXTURE2D(_DetailNormalMap, sampler_DetailNormalMap, NormalSecUV);
+//float scaleSec = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _DetailNormalStrength);
+//float3 normalSec = DecodeNormal(NmapSec, scaleSec);
 
 Scattering.metallic = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Metallic) * SAMPLE_TEXTURE2D(_MetalMap, sampler_MetalMap, input.baseUV).r;
 Scattering.smoothness = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Smoothness) * SAMPLE_TEXTURE2D(_SmoothnessMap, sampler_SmoothnessMap, input.baseUV).r;
 
-float3 normal = BlendNormalRNM(normalMain, normalSec);
+float3 normal = normalMain;
 
 Scattering.normal = NormalTangentToWorld(normal, input.normalWS, input.tangentWS);
 Scattering.viewDirection = normalize(_WorldSpaceCameraPos.xyz - input.positionWS.xyz);
@@ -133,12 +133,14 @@ Scattering.dither = 1;
 BRDF brdf = GetBRDF(Scattering);
 GI gi = GetGI(GI_FRAGMENT_DATA(input), Scattering, brdf);
 
-if(_ScatteringMode == 0)
-finalColor = GetLightingScattering(Scattering, brdf, gi,1);
-if (_ScatteringMode == 1)
-finalColor = GetLightingScattering(Scattering, brdf, gi, 1, SAMPLE_TEXTURE2D(_ScatteringMask, sampler_ScatteringMask, input.baseUV).r);
-if (_ScatteringMode == 2)
-finalColor = GetLightingScattering(Scattering, brdf, gi, 1, _ScatteringAmplitude, _ScatteringScale);
+//if(_ScatteringMode == 0)
+//finalColor = GetLightingScattering(Scattering, brdf, gi,1);
+//if (_ScatteringMode == 1)
+//finalColor = GetLightingScattering(Scattering, brdf, gi, 1, SAMPLE_TEXTURE2D(_ScatteringMask, sampler_ScatteringMask, input.baseUV).r);
+//if (_ScatteringMode == 2)
+//finalColor = GetLightingScattering(Scattering, brdf, gi, 1, _ScatteringAmplitude, _ScatteringScale);
+
+finalColor = GetLightingScattering(Scattering, brdf, gi, 1, _ScatteringAmplitude, _ScatteringScale, SAMPLE_TEXTURE2D(_ScatteringMask, sampler_ScatteringMask, input.baseUV).r);
 
 return float4(finalColor, 1);
 }

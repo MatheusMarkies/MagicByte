@@ -37,7 +37,7 @@ Varyings DefaultPassVertex(uint vertexID: SV_VertexID) {
 float _Threshold;
 
 float3 Threshold(float3 color) {
-    float brightness = (color.r + color.g+color.b)/3;
+    float brightness = (color.r + color.g + color.b) / 3;
     brightness = pow(brightness, _Threshold);
     return brightness;
 }
@@ -45,7 +45,7 @@ float4 GetSource(float2 fxUV) {
     return SAMPLE_TEXTURE2D(_PostFXSource, sampler_PostFXSource, fxUV);
 }
 
-float4 Thresholder(Varyings i) : SV_Target
+float4 thresholder(Varyings i) : SV_Target
 {
     return float4(Threshold(GetSource(i.fxUV)),1);
 }

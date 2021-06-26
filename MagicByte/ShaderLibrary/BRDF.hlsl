@@ -127,7 +127,7 @@ return unity_SHAr + unity_SHAg * (n.y) + unity_SHAb * (n.z) + unity_SHBr * (n.x)
 
 float3 IndirectBRDF (Surface surface, BRDF brdf, float3 diffuse, float3 specular){
 
-float fresnelStrength = surface.fresnelStrength * Pow4(1.0 - saturate(dot(surface.normal, surface.viewDirection)));
+float fresnelStrength = surface.ior * Pow4(1.0 - saturate(dot(surface.normal, surface.viewDirection)));
 
 float3 reflection = specular * lerp(brdf.specular, brdf.fresnel, fresnelStrength);
 
@@ -168,10 +168,10 @@ float3 DirectBRDF (Surface surface, BRDF brdf, Light light) {
 	float G = min(1.0, min(2 * NoH * dot(surface.normal, surface.viewDirection) / dot(surface.viewDirection, h), 2 * NoH * NoL / dot(surface.viewDirection,h))); 
 	G *= 1 / (NoL * dot(surface.normal, surface.viewDirection));
 
-	float fresnel = Fresnel(surface.fresnelStrength, surface.normal, surface.viewDirection);
+	float fresnel = Fresnel(surface.ior, surface.normal, surface.viewDirection);
 	float3 diffuse = brdf.diffuse * (1.0f / dot(float3(0.3f, 0.6f, 1.0f), brdf.diffuse)) * saturate((LoV * fresnel + NoL) * light.color);
 
-	float f0 = pow((surface.fresnelStrength) / (surface.fresnelStrength + 2), 2);
+	float f0 = pow((surface.ior) / (surface.ior + 2), 2);
 	float F = FresnelBRDF(f0, LoH) * surface.occlusion;
 
 	if (surface.anisotropic == 0) {

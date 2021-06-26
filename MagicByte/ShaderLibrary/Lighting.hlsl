@@ -69,92 +69,96 @@ float3 GetLightingScattering(Surface surface, BRDF brdf, Light light) {
 	return IncomingLight(surface, light) * DirectBRDF(surface, brdf, light);
 }
 
-float3 GetLightingScattering(Surface surfaceWS, BRDF brdf, GI gi, int Alpha) {
-	ShadowData shadowData = GetShadowData(surfaceWS);
-	shadowData.shadowMask = gi.shadowMask;
-
-	float3 color = IndirectBRDF(surfaceWS, brdf, gi.diffuse, gi.specular);
-	for (int i = 0; i < GetDirectionalLightCount(); i++) {
-		Light light = GetDirectionalLight(i, surfaceWS, shadowData);
-		color += GetLightingScattering(surfaceWS, brdf, light);
-		float scattering = saturate(dot(surfaceWS.viewDirection, -(normalize(light.direction + surfaceWS.normal * Alpha))));
-		color += scattering * (light.color * 1.5) + surfaceWS.color * scattering;
-	}
-
-	for (int j = 0; j < GetOtherLightCount(); j++) {
-		Light light = GetOtherLight(j, surfaceWS, shadowData);
-		color += GetLightingScattering(surfaceWS, brdf, light);
-		float scattering = saturate(dot(surfaceWS.viewDirection, -(normalize(light.direction + surfaceWS.normal * Alpha))));
-		color += scattering * (light.color * 1.5) + surfaceWS.color * scattering;
-	}
-
-	return color;
-}
-
-float3 GetLightingScatteringFresnel(Surface surfaceWS, BRDF brdf, GI gi, int Alpha, float fresnel) {
-	ShadowData shadowData = GetShadowData(surfaceWS);
-	shadowData.shadowMask = gi.shadowMask;
-
-	float3 color = IndirectBRDF(surfaceWS, brdf, gi.diffuse, gi.specular);
-	for (int i = 0; i < GetDirectionalLightCount(); i++) {
-		Light light = GetDirectionalLight(i, surfaceWS, shadowData);
-		color += GetLightingScattering(surfaceWS, brdf, light);
-		float scattering = saturate(dot(surfaceWS.viewDirection, -(normalize(light.direction + surfaceWS.normal * Alpha)))) * Fresnel(fresnel, surfaceWS.normal, surfaceWS.viewDirection);
-		color += scattering * (light.color * 1.5) + surfaceWS.color * scattering;
-	}
-
-	for (int j = 0; j < GetOtherLightCount(); j++) {
-		Light light = GetOtherLight(j, surfaceWS, shadowData);
-		color += GetLightingScattering(surfaceWS, brdf, light);
-		float scattering = saturate(dot(surfaceWS.viewDirection, -(normalize(light.direction + surfaceWS.normal * Alpha)))) * Fresnel(fresnel, surfaceWS.normal, surfaceWS.viewDirection);
-		color += scattering * (light.color * 1.5) + surfaceWS.color * scattering;
-	}
-
-	return color;
-}
-
-float3 GetLightingScattering(Surface surfaceWS, BRDF brdf, GI gi, int Alpha, float ScatteringMask) {
-	ShadowData shadowData = GetShadowData(surfaceWS);
-	shadowData.shadowMask = gi.shadowMask;
-
-	float3 color = IndirectBRDF(surfaceWS, brdf, gi.diffuse, gi.specular);
-	for (int i = 0; i < GetDirectionalLightCount(); i++) {
-		Light light = GetDirectionalLight(i, surfaceWS, shadowData);
-		color += GetLightingScattering(surfaceWS, brdf, light);
-		float scattering = saturate(dot(surfaceWS.viewDirection, -(normalize(light.direction + surfaceWS.normal * Alpha)))) * ScatteringMask;
-		color += scattering * (light.color * 1.5) + surfaceWS.color * scattering;
-	}
-
-	for (int j = 0; j < GetOtherLightCount(); j++) {
-		Light light = GetOtherLight(j, surfaceWS, shadowData);
-		color += GetLightingScattering(surfaceWS, brdf, light);
-		float scattering = saturate(dot(surfaceWS.viewDirection, -(normalize(light.direction + surfaceWS.normal * Alpha)))) * ScatteringMask;
-		color += scattering * (light.color * 1.5) + surfaceWS.color * scattering;
-	}
-
-	return color;
-}
-float3 GetLightingScattering(Surface surfaceWS, BRDF brdf, GI gi, int Alpha, float power, float scale) {
-	ShadowData shadowData = GetShadowData(surfaceWS);
-	shadowData.shadowMask = gi.shadowMask;
-
-	float3 color = IndirectBRDF(surfaceWS, brdf, gi.diffuse, gi.specular);
-	for (int i = 0; i < GetDirectionalLightCount(); i++) {
-		Light light = GetDirectionalLight(i, surfaceWS, shadowData);
-		color += GetLightingScattering(surfaceWS, brdf, light);
-		float scattering = pow(saturate(dot(surfaceWS.viewDirection, -(normalize(light.direction + surfaceWS.normal * Alpha)))), power) * scale;
-		color += scattering * (light.color * 1.5) + surfaceWS.color * scattering;
-	}
-
-	for (int j = 0; j < GetOtherLightCount(); j++) {
-		Light light = GetOtherLight(j, surfaceWS, shadowData);
-		color += GetLightingScattering(surfaceWS, brdf, light);
-		float scattering = pow(saturate(dot(surfaceWS.viewDirection, -(normalize(light.direction + surfaceWS.normal * Alpha)))), power) * scale;
-		color += scattering * (light.color * 1.5) + surfaceWS.color * scattering;
-	}
-
-	return color;
-}
+//float3 GetLightingScattering(Surface surfaceWS, BRDF brdf, GI gi, int Alpha) {
+//	ShadowData shadowData = GetShadowData(surfaceWS);
+//	shadowData.shadowMask = gi.shadowMask;
+//
+//	float3 color = IndirectBRDF(surfaceWS, brdf, gi.diffuse, gi.specular);
+//	for (int i = 0; i < GetDirectionalLightCount(); i++) {
+//		Light light = GetDirectionalLight(i, surfaceWS, shadowData);
+//		color += GetLightingScattering(surfaceWS, brdf, light);
+//		float scattering = saturate(dot(surfaceWS.viewDirection, -(normalize(light.direction + surfaceWS.normal * Alpha))));
+//		color += scattering * (light.color * 1.5) + surfaceWS.color * scattering;
+//	}
+//
+//	for (int j = 0; j < GetOtherLightCount(); j++) {
+//		Light light = GetOtherLight(j, surfaceWS, shadowData);
+//		color += GetLightingScattering(surfaceWS, brdf, light);
+//		float scattering = saturate(dot(surfaceWS.viewDirection, -(normalize(light.direction + surfaceWS.normal * Alpha))));
+//		color += scattering * (light.color * 1.5) + surfaceWS.color * scattering;
+//	}
+//
+//	return color;
+//}
+//
+//float3 GetLightingScatteringFresnel(Surface surfaceWS, BRDF brdf, GI gi, int Alpha, float fresnel) {
+//	ShadowData shadowData = GetShadowData(surfaceWS);
+//	shadowData.shadowMask = gi.shadowMask;
+//
+//	float3 color = IndirectBRDF(surfaceWS, brdf, gi.diffuse, gi.specular);
+//	for (int i = 0; i < GetDirectionalLightCount(); i++) {
+//		Light light = GetDirectionalLight(i, surfaceWS, shadowData);
+//		color += GetLightingScattering(surfaceWS, brdf, light);
+//		float scattering = saturate(dot(surfaceWS.viewDirection, -(normalize(light.direction + surfaceWS.normal * Alpha)))) * Fresnel(fresnel, surfaceWS.normal, surfaceWS.viewDirection);
+//		color += scattering * (light.color * 1.5) + surfaceWS.color * scattering;
+//	}
+//
+//	for (int j = 0; j < GetOtherLightCount(); j++) {
+//		Light light = GetOtherLight(j, surfaceWS, shadowData);
+//		color += GetLightingScattering(surfaceWS, brdf, light);
+//		float scattering = saturate(dot(surfaceWS.viewDirection, -(normalize(light.direction + surfaceWS.normal * Alpha)))) * Fresnel(fresnel, surfaceWS.normal, surfaceWS.viewDirection);
+//		color += scattering * (light.color * 1.5) + surfaceWS.color * scattering;
+//	}
+//
+//	return color;
+//}
+//
+//float3 GetLightingScattering(Surface surfaceWS, BRDF brdf, GI gi, int Alpha, float ScatteringMask) {
+//	ShadowData shadowData = GetShadowData(surfaceWS);
+//	shadowData.shadowMask = gi.shadowMask;
+//
+//	float3 color = IndirectBRDF(surfaceWS, brdf, gi.diffuse, gi.specular);
+//	for (int i = 0; i < GetDirectionalLightCount(); i++) {
+//		Light light = GetDirectionalLight(i, surfaceWS, shadowData);
+//		color += GetLightingScattering(surfaceWS, brdf, light);
+//		float scattering = saturate(dot(surfaceWS.viewDirection, -(normalize(light.direction + surfaceWS.normal * Alpha)))) * ScatteringMask;
+//		color += scattering * (light.color * 1.5) + surfaceWS.color * scattering;
+//	}
+//
+//	for (int j = 0; j < GetOtherLightCount(); j++) {
+//		Light light = GetOtherLight(j, surfaceWS, shadowData);
+//		color += GetLightingScattering(surfaceWS, brdf, light);
+//		float scattering = saturate(dot(surfaceWS.viewDirection, -(normalize(light.direction + surfaceWS.normal * Alpha)))) * ScatteringMask;
+//		color += scattering * (light.color * 1.5) + surfaceWS.color * scattering;
+//	}
+//
+//	return color;
+//}
+//float3 GetLightingScattering(Surface surfaceWS, BRDF brdf, GI gi, int Alpha, float power, float scale) {
+//	ShadowData shadowData = GetShadowData(surfaceWS);
+//	shadowData.shadowMask = gi.shadowMask;
+//
+//	float3 color = IndirectBRDF(surfaceWS, brdf, gi.diffuse, gi.specular);
+//	for (int i = 0; i < GetDirectionalLightCount(); i++) {
+//		Light light = GetDirectionalLight(i, surfaceWS, shadowData);
+//		color += GetLightingScattering(surfaceWS, brdf, light);
+//		float3 lightDir = light.direction + surfaceWS.normal;
+//		float3 translucency = (pow(saturate(dot(surfaceWS.viewDirection, -lightDir)), power) * scale + gi.diffuse * 1) * light.attenuation; //* light.distanceAttenuation;
+//		// color += scattering * (light.color * 1.5) + surfaceWS.color * scattering;
+//		color += surfaceWS.color * light.color * translucency;
+//	}
+//
+//	for (int j = 0; j < GetOtherLightCount(); j++) {
+//		Light light = GetOtherLight(j, surfaceWS, shadowData);
+//		color += GetLightingScattering(surfaceWS, brdf, light);
+//		float3 lightDir = light.direction + surfaceWS.normal;
+//		float3 translucency = (pow(saturate(dot(surfaceWS.viewDirection, -lightDir)), power) * scale + gi.diffuse * 1) * light.attenuation; //* light.distanceAttenuation;
+//		// color += scattering * (light.color * 1.5) + surfaceWS.color * scattering;
+//		color += surfaceWS.color * light.color * translucency;
+//	}
+//
+//	return color;
+//}
 
 float3 GetLightingScattering(Surface surfaceWS, BRDF brdf, GI gi, int Alpha, float power, float scale, float ScatteringMask) {
 	ShadowData shadowData = GetShadowData(surfaceWS);
@@ -164,15 +168,20 @@ float3 GetLightingScattering(Surface surfaceWS, BRDF brdf, GI gi, int Alpha, flo
 	for (int i = 0; i < GetDirectionalLightCount(); i++) {
 		Light light = GetDirectionalLight(i, surfaceWS, shadowData);
 		color += GetLightingScattering(surfaceWS, brdf, light);
-		float scattering = pow(saturate(dot(surfaceWS.viewDirection, -(normalize(light.direction + surfaceWS.normal * Alpha)))), power) * scale * ScatteringMask;
-		color += scattering * (light.color * 1.5) + surfaceWS.color * scattering;
+		float3 lightDir = light.direction + surfaceWS.normal;
+		float3 translucency = (pow(saturate(dot(surfaceWS.viewDirection, -lightDir)), power) * scale + gi.diffuse * 1) * (ScatteringMask) * light.attenuation; //* light.distanceAttenuation;
+		// color += scattering * (light.color * 1.5) + surfaceWS.color * scattering;
+		color += surfaceWS.color * light.color * translucency;
 	}
 
 	for (int j = 0; j < GetOtherLightCount(); j++) {
 		Light light = GetOtherLight(j, surfaceWS, shadowData);
 		color += GetLightingScattering(surfaceWS, brdf, light);
-		float scattering = pow(saturate(dot(surfaceWS.viewDirection, -(normalize(light.direction + surfaceWS.normal * Alpha)))), power) * scale * ScatteringMask;
-		color += scattering * (light.color * 1.5) + surfaceWS.color * scattering;
+
+		float3 lightDir = light.direction + surfaceWS.normal;
+		float3 translucency = (pow(saturate(dot(surfaceWS.viewDirection, -lightDir)), power) * scale + gi.diffuse * 1) * (ScatteringMask) * light.attenuation; //* light.distanceAttenuation;
+		// color += scattering * (light.color * 1.5) + surfaceWS.color * scattering;
+		color += surfaceWS.color * light.color * translucency;
 	}
 
 	return color;

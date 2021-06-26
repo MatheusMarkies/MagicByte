@@ -6,8 +6,8 @@
 
 		[Enum(Simple, 0, Mask, 1, Curve, 2)] _ScatteringMode("Scattering Mode", Float) = 2
 		[NoScaleOffset] _ScatteringMask("Scattering Mask", 2D) = "white" {}
-		_ScatteringAmplitude("Scattering Amplitude",Float) = 1
-		_ScatteringScale("Scattering Scale",Float) = 2
+		_ScatteringAmplitude("Scattering Amplitude",Range(0.2,2)) = 1
+		_ScatteringScale("Scattering Scale",Range(0.5,5)) = 2
 
 		[NoScaleOffset] _Normal("Main Normal",2D) = "bump" {}
 		_NormalStrength("Normal Strength",Range(0, 1)) = 1

@@ -27,6 +27,10 @@
             TEXTURE2D(_PostFXSource);
             SAMPLER(sampler_PostFXSource);
 
+            float _usePathTracing = 0;
+            TEXTURE2D(_PathTracingFrame);
+            SAMPLER(sampler_PathTracingFrame);
+
             struct appdata
             {
                 float4 vertex : POSITION;
@@ -136,10 +140,16 @@ float3 Gray(float3 color) {
 float4 GetSource(float2 fxUV) {
     return SAMPLE_TEXTURE2D(_PostFXSource, sampler_PostFXSource, fxUV);
 }
+float4 GetSourcePathTracing(float2 fxUV) {
+    return SAMPLE_TEXTURE2D(_PathTracingFrame, sampler_PathTracingFrame, fxUV);
+}
 float4 frag (Varyings i) : SV_Target
 {
 
                 float4 color = GetSource(i.fxUV);
+
+                if (_usePathTracing == 1)
+                    color = GetSourcePathTracing(i.fxUV);
 
                 float3 hsv = RGBtoHSV(color.rgb);
                 hsv.x = gmod(hsv.x + _HSV.x, 1.0);

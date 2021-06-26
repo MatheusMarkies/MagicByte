@@ -12,8 +12,6 @@
 TEXTURE2D(_ScatteringMask);
 SAMPLER(sampler_ScatteringMask);
 
-float _ScatteringAmplitude;
-float _ScatteringScale;
 float _Scattering;
 
 struct Attributes {
@@ -68,30 +66,18 @@ float3 GetLighting(Surface surfaceWS, BRDF brdf, GI gi) {
 	float3 color = IndirectBRDF(surfaceWS, brdf, gi.diffuse, gi.specular);
 	for (int i = 0; i < GetDirectionalLightCount(); i++) {
 		Light light = GetDirectionalLight(i, surfaceWS, shadowData);
-		color += GetLighting(surfaceWS, brdf, light);
+		float3 lightDir = light.direction + surfaceWS.normal;
+		float3 translucency = (pow(saturate(dot(surfaceWS.viewDirection, -lightDir)), 1.25f) * 3 + gi.diffuse * 1) *light.attenuation * _Scattering; //* light.distanceAttenuation;
+		// color += scattering * (light.color * 1.5) + surfaceWS.color * scattering;
+		color += surfaceWS.color * light.color * translucency;
 	}
 
 	for (int j = 0; j < GetOtherLightCount(); j++) {
 		Light light = GetOtherLight(j, surfaceWS, shadowData);
-		color += GetLighting(surfaceWS, brdf, light);
-	}
-
-	return color;
-}
-
-float3 GetLightingGlass(Surface surfaceWS, BRDF brdf, GI gi) {
-	ShadowData shadowData = GetShadowData(surfaceWS);
-	shadowData.shadowMask = gi.shadowMask;
-	float fresnel = Fresnel(surfaceWS.fresnelStrength, surfaceWS.normal, surfaceWS.viewDirection);
-	float3 color = lerp(gi.refract, IndirectBRDF(surfaceWS, brdf, gi.diffuse, gi.specular), fresnel);
-	for (int i = 0; i < GetDirectionalLightCount(); i++) {
-		Light light = GetDirectionalLight(i, surfaceWS, shadowData);
-		color += GetLighting(surfaceWS, brdf, light);
-	}
-
-	for (int j = 0; j < GetOtherLightCount(); j++) {
-		Light light = GetOtherLight(j, surfaceWS, shadowData);
-		color += GetLighting(surfaceWS, brdf, light);
+		float3 lightDir = light.direction + surfaceWS.normal;
+		float3 translucency = (pow(saturate(dot(surfaceWS.viewDirection, -lightDir)), 1.25f) * 3 + gi.diffuse * 1) *light.attenuation * _Scattering; //* light.distanceAttenuation;
+		// color += scattering * (light.color * 1.5) + surfaceWS.color * scattering;
+		color += surfaceWS.color * light.color * translucency;
 	}
 
 	return color;
@@ -141,9 +127,6 @@ float4 LitPassFragment (Varyings input) : SV_TARGET {
 
 	float3 color = (0, 0, 0);
 
-	if(_Scattering == 1)
-	color = GetLightingScattering(surface, brdf,gi, 1, _ScatteringAmplitude, _ScatteringScale, SAMPLE_TEXTURE2D(_ScatteringMask, sampler_ScatteringMask, input.baseUV).r);
-	else
 	color = GetLighting(surface, brdf, gi);
 
 	//color += color;

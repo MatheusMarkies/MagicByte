@@ -39,7 +39,7 @@ public class MBEditor
                 }
                     if (have == 0)
                     {
-                        render.material = new Material(Shader.Find("Magic Byte/Magic Byte Lit"));
+                        render.material = new Material(Shader.Find("Magic Byte/BSSRDF"));
 
                     }
 
@@ -56,7 +56,7 @@ public class MBEditor
                             if (haveChild == 0)
                             {
 
-                                renderChild.material = new Material(Shader.Find("Magic Byte/Magic Byte Lit"));
+                                renderChild.material = new Material(Shader.Find("Magic Byte/BSSRDF"));
 
                             }
 

@@ -51,7 +51,4 @@ float3 DirectHairBRDF (Surface surface, BRDF brdf, Light light, float3 specularC
 	return HairSpecular(surface, brdf, light, specularColor1, specularColor2, exp1, exp2,ramp) * G * (energyCompensation * specularIntensity) + (1 / PI*disneyDiffuse(dot(surface.normal, surface.viewDirection), NoL, LoH, brdf.roughness) * brdf.diffuse) * FresnelBRDF(surface) + (1 / PI*brdf.diffuse);
 }
 
-
-
-
 #endif

@@ -1,25 +1,28 @@
-﻿#ifndef CUSTOM_LIT_INPUT_INCLUDED
-#define CUSTOM_LIT_INPUT_INCLUDED
+﻿#ifndef INPUT_INCLUDED
+#define INPUT_INCLUDED
 
 //#include "ShadowCasterPass.hlsl"
+#include "../../ShaderLibrary/Surface.hlsl"
+
+float _Gamma = 2.2f;
 
 TEXTURE2D(_BaseMap);
 SAMPLER(sampler_BaseMap);
 
-TEXTURE2D(_EmissionMap);
-SAMPLER(sampler_EmissionMap);
-
-TEXTURE2D (_DetailMap);
-SAMPLER (sampler_DetailMap);
-
-TEXTURE2D(_NormalMap);
-SAMPLER(sampler_NormalMap);
-
 TEXTURE2D(_DetailNormalMap);
 SAMPLER(sampler_DetailNormalMap);
 
-TEXTURE2D(_OcclusionMap);
-SAMPLER(sampler_OcclusionMap);
+TEXTURE2D(_DetailMap);
+SAMPLER(sampler_DetailMap);
+
+TEXTURE2D(_AlphaMap);
+SAMPLER(sampler_AlphaMap);
+
+TEXTURE2D(_EmissionMap);
+SAMPLER(sampler_EmissionMap);
+
+TEXTURE2D(_NormalMap);
+SAMPLER(sampler_NormalMap);
 
 TEXTURE2D(_SmoothnessMap);
 SAMPLER(sampler_SmoothnessMap);
@@ -27,32 +30,48 @@ SAMPLER(sampler_SmoothnessMap);
 TEXTURE2D(_MetalMap);
 SAMPLER(sampler_MetalMap);
 
-UNITY_INSTANCING_BUFFER_START(UnityPerMaterial)
-	UNITY_DEFINE_INSTANCED_PROP(float4, _BaseMap_ST)
-	UNITY_DEFINE_INSTANCED_PROP(float4, _BaseColor)
-	UNITY_DEFINE_INSTANCED_PROP(float4, _EmissionColor)
-	UNITY_DEFINE_INSTANCED_PROP(float, _Cutoff)
-	UNITY_DEFINE_INSTANCED_PROP(float, _Metallic)
-	UNITY_DEFINE_INSTANCED_PROP(float, _Smoothness)
-	UNITY_DEFINE_INSTANCED_PROP(float, _Occlusion)
-	UNITY_DEFINE_INSTANCED_PROP(float4, _DetailMap_ST)
-	UNITY_DEFINE_INSTANCED_PROP(float, _DetailAlbedo)
-	UNITY_DEFINE_INSTANCED_PROP(float, _DetailSmoothness)
-	UNITY_DEFINE_INSTANCED_PROP(float, _NormalStrength)
-	UNITY_DEFINE_INSTANCED_PROP(float, _DetailNormalStrength)
-	UNITY_DEFINE_INSTANCED_PROP(float, _MicroFlakesTile)
-	UNITY_DEFINE_INSTANCED_PROP(float, _ClearCoat)
-	UNITY_DEFINE_INSTANCED_PROP(float, _Fresnel)
-	UNITY_DEFINE_INSTANCED_PROP(float, _UseClearCoat)
-	UNITY_DEFINE_INSTANCED_PROP(float, _clearCoatRoughness)
-	UNITY_DEFINE_INSTANCED_PROP(float, _MicroFlakesAnim)
-	UNITY_DEFINE_INSTANCED_PROP(int, _MicroFlakesAmount)
-	UNITY_DEFINE_INSTANCED_PROP(float4, _MicroFlakesColor)
-	UNITY_DEFINE_INSTANCED_PROP(int, _UseRefraction)
-	UNITY_DEFINE_INSTANCED_PROP(float, _UseRoughness)
-	//UNITY_DEFINE_INSTANCED_PROP(float, _Scattering)
+TEXTURE2D(_OcclusionMap);
+SAMPLER(sampler_OcclusionMap);
 
+sampler2D _HeightMap;
+
+UNITY_INSTANCING_BUFFER_START(UnityPerMaterial)
+	UNITY_DEFINE_INSTANCED_PROP(float4, _BaseMap_ST)//
+	UNITY_DEFINE_INSTANCED_PROP(float4, _DetailMap_ST)//
+	UNITY_DEFINE_INSTANCED_PROP(float4, _BaseColor)//
+	UNITY_DEFINE_INSTANCED_PROP(float4, _SubSurfaceColor)//
+	UNITY_DEFINE_INSTANCED_PROP(float, _Cutoff)//
+	UNITY_DEFINE_INSTANCED_PROP(float4, _AlphaMap_ST)//
+	UNITY_DEFINE_INSTANCED_PROP(float4, _MetalMap_ST)//
+	UNITY_DEFINE_INSTANCED_PROP(float, _UseRoughness)//
+	UNITY_DEFINE_INSTANCED_PROP(float4, _SmoothnessMap_ST)//
+	UNITY_DEFINE_INSTANCED_PROP(float4, _OcclusionMap_ST)//
+	UNITY_DEFINE_INSTANCED_PROP(float, _HeightMode)//
+	UNITY_DEFINE_INSTANCED_PROP(float, _Height)//
+	UNITY_DEFINE_INSTANCED_PROP(float, _Metallic)//
+	UNITY_DEFINE_INSTANCED_PROP(float, _Smoothness)//
+	UNITY_DEFINE_INSTANCED_PROP(float, _Occlusion)//
+	UNITY_DEFINE_INSTANCED_PROP(float, _Sheen)//
+	UNITY_DEFINE_INSTANCED_PROP(float, _SheenTint)//
+	UNITY_DEFINE_INSTANCED_PROP(float, _SubSurface)//
+	UNITY_DEFINE_INSTANCED_PROP(float, _Anisotropic)//
+	UNITY_DEFINE_INSTANCED_PROP(float, _Transmission)//
+	UNITY_DEFINE_INSTANCED_PROP(float4, _EmissionMap_ST)//
+	UNITY_DEFINE_INSTANCED_PROP(float4, _EmissionColor)//
+	UNITY_DEFINE_INSTANCED_PROP(float4, _NormalMap_ST)//
+	UNITY_DEFINE_INSTANCED_PROP(float, _NormalStrength)//
+	UNITY_DEFINE_INSTANCED_PROP(float, _IOR)//
+	UNITY_DEFINE_INSTANCED_PROP(float, _UseClearCoat)//
+	UNITY_DEFINE_INSTANCED_PROP(float, _ClearCoatRoughness)//
 UNITY_INSTANCING_BUFFER_END(UnityPerMaterial)
+
+float GrayScale(float3 map) {
+	return (map.r + map.g + map.b) / 3;
+}
+
+float3 GammaToLinear(float3 color) {
+	return float3(pow(color.r, 2.2f), pow(color.g, 2.2f), pow(color.b, 2.2f));
+}
 
 float2 TransformBaseUV (float2 baseUV) {
 	float4 baseST = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _BaseMap_ST);
@@ -64,115 +83,164 @@ float2 TransformDetailUV (float2 detailUV) {
 	return detailUV * detailST.xy + detailST.zw;
 }
 
-float4 GetDetail (float2 detailUV) {
+float4 getDetail (float2 detailUV) {
 	float4 map = SAMPLE_TEXTURE2D(_DetailMap, sampler_DetailMap, detailUV);
 	return map * 2.0 - 1.0;;
 }
 
-float3 GetNormalTS (float2 baseUV, float2 detailUV = 0.0) {
+float3 getNormal (float2 baseUV, float2 detailUV = 0.0) {
 	float4 map = SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, baseUV);
 	float scale = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _NormalStrength);
 	float3 normal = DecodeNormal(map, scale);
 
-	map = SAMPLE_TEXTURE2D(_DetailNormalMap, sampler_DetailNormalMap, detailUV);
-	scale = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _DetailNormalStrength);
-	float3 detail = DecodeNormal(map, scale);
-	normal = BlendNormalRNM(normal, detail);
+	//map = SAMPLE_TEXTURE2D(_DetailNormalMap, sampler_DetailNormalMap, detailUV);
+	//scale = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _DetailNormalStrength);
+	//float3 detail = DecodeNormal(map, scale);
+	//normal = BlendNormalRNM(normal, detail);
 
 	return normal;
 }
 
-float3 Gamma2Linear(float3 color) {
-	return float3(pow(color.r, 2.2f), pow(color.g, 2.2f), pow(color.b, 2.2f));
+float3 getSubSurfaceColor() {
+	return GammaToLinear(UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _SubSurfaceColor));
 }
 
-float4 GetBase (float2 baseUV, float2 detailUV = 0.0) {
-	float4 map = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, baseUV);
+float4 getBase (float2 baseUV, float2 detailUV = 0.0) {
+	float4 base = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, baseUV);
 	float4 color = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _BaseColor);
 
-	float detail = GetDetail(detailUV).r * UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _DetailAlbedo);
-	float mask = saturate(SAMPLE_TEXTURE2D(_DetailNormalMap, sampler_DetailMap, detailUV));
-	map.rgb = lerp(sqrt(map.rgb), detail < 0.0 ? 0.0 : 1.0, abs(detail)* mask);
-	map.rgb *= map.rgb;
+	//float detail = getDetail(detailUV).r * UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _DetailAlbedo);
+	//float mask = saturate(SAMPLE_TEXTURE2D(_DetailNormalMap, sampler_DetailMap, detailUV));
 
-	return float4(Gamma2Linear((map * color).rgb), map.a);
+	//base.rgb = lerp(sqrt(base.rgb), detail < 0.0 ? 0.0 : 1.0, abs(detail)* mask);
+
+	return float4(GammaToLinear((base * color).rgb), base.a);
 }
 
-//float4 GetBase(float2 baseUV) {
-//	float4 map = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, baseUV);
-//	float4 color = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _BaseColor);
-//
-//	map.rgb *= map.rgb;
-//
-//	return map * color;
-//}
-
-float3 GetEmission (float2 baseUV) {
+float3 getEmission (float2 baseUV) {
 	float4 map = SAMPLE_TEXTURE2D(_EmissionMap, sampler_BaseMap, baseUV);
 	float4 color = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _EmissionColor);
-	return map.r * color.rgb;
+	return GammaToLinear(map.r * color.rgb);
 }
 
-float GetOcclusion (float2 baseUV) {
+float getOcclusion (float2 baseUV) {
 	float strength = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Occlusion);
-	float occlusion =  pow(abs(SAMPLE_TEXTURE2D(_OcclusionMap, sampler_OcclusionMap, baseUV).r), 2.2);
+	float occlusion =  abs(GammaToLinear(SAMPLE_TEXTURE2D(_OcclusionMap, sampler_OcclusionMap, baseUV)).r);
 	occlusion = lerp(occlusion, 1.0, 1-strength);
 	return occlusion;
 }
 
-float GetFresnel () {
-	return UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Fresnel);
+float getIOR () {
+	return UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _IOR);
 }
 
-float GetCutoff (float2 baseUV) {
+float getSheen() {
+	return UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Sheen);
+}
+
+float getTransmission() {
+	return UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Transmission);
+}
+
+float getSheenTint() {
+	return UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _SheenTint);
+}
+float getSubSurface() {
+	return UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _SubSurface);
+}
+float getAnisotropic() {
+	return UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Anisotropic);
+}
+float getAlpha(float2 baseUV) {
+	return GrayScale(SAMPLE_TEXTURE2D(_AlphaMap, sampler_AlphaMap, baseUV)) * UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _BaseColor).a;
+}
+
+float getCutoff () {
 	return UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Cutoff);
 }
 
-float GetMetallic (float2 baseUV) {
+float2 getHeight(float2 baseUV) {
+	float2 height = float2(UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Height), UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Height));
+	height *= abs(GammaToLinear(tex2Dlod(_HeightMap, float4(baseUV, 0, 0))));
+	return height;
+}
+
+float getMetallic (float2 baseUV) {
 	float metallic = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Metallic);
-	metallic *= pow(abs(SAMPLE_TEXTURE2D(_MetalMap, sampler_MetalMap, baseUV).r), 2.2);
+	metallic *= abs(GammaToLinear(SAMPLE_TEXTURE2D(_MetalMap, sampler_MetalMap, baseUV)).r);
 	return metallic;
 }
 
-float GetSmoothness (float2 baseUV) {
-	float smoothness = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Smoothness);
-	smoothness *= pow(abs(SAMPLE_TEXTURE2D(_SmoothnessMap, sampler_SmoothnessMap, baseUV).r), 2.2);
+float getSmoothness (float2 baseUV) {
+	float smoothness = 1-UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Smoothness);
+	smoothness *= abs(GammaToLinear(SAMPLE_TEXTURE2D(_SmoothnessMap, sampler_SmoothnessMap, baseUV)).r);
 
-	/*float detail = GetDetail(detailUV).b * UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _DetailSmoothness);
-	float mask = SAMPLE_TEXTURE2D(_SmoothnessMap, sampler_SmoothnessMap, detailUV).r;
-	smoothness = lerp(smoothness, detail < 0.0 ? 0.0 : 1.0, abs(detail) * mask);*/
-	
 	return smoothness;
 }
-//float GetAnisotropicX() {
 
-//	return UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _AnisotropicX);
-//}
-//float GetAnisotropicY() {
-
-//	return UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _AnisotropicY);
-//}
-
-float UseClearCoat() {
-
-	return UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _UseClearCoat);
+bool UseClearCoat() {
+	if (UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _UseClearCoat) == 1)
+		return true;
+	return false;
 }
-float GetClearCoatRoughness () {
-	
-	return UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial,_clearCoatRoughness);
-}
-float GetClearCoat() {
-
-	return UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _ClearCoat);
+float getClearCoatRoughness () {
+	return UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _ClearCoatRoughness);
 }
 
-int UseRefraction() {
-   return UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _UseRefraction);
+bool isUseRoughness() {
+	if (UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _UseRoughness) == 1)
+		return true;
+	return false;
 }
 
-float UseRoughness() {
+float2 ParallaxOffset(float h, float height, float3 viewDir)
+{
+	h = h * height - height / 2.0;
+	float3 v = normalize(viewDir);
+	v.z += 0.42;
+	return h * (v.xy / v.z);
+}
 
-	return UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _UseRoughness);
+Surface getSurface(float2 baseUV,float3 positionWS, float4 positionCS,float3 normalWS,float4 tangentWS) {
+	Surface surface;
+
+	surface.position = positionWS;
+	surface.normal = NormalTangentToWorld(getNormal(baseUV), normalWS, tangentWS);
+	surface.interpolatedNormal = normalWS;
+	surface.viewDirection = normalize(_WorldSpaceCameraPos - positionWS);
+	surface.tangent = tangentWS;
+	surface.binormal = cross(NormalTangentToWorld(getNormal(baseUV), normalWS, tangentWS), tangentWS.xyz) * tangentWS.w;
+
+	float heightTex = GammaToLinear(SAMPLE_TEXTURE2D(_SmoothnessMap, sampler_SmoothnessMap, baseUV)).r;
+	float2 parallaxOffset = ParallaxOffset(heightTex, UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Height), surface.viewDirection);
+
+	if (UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _HeightMode) == 0)
+		parallaxOffset = float2(0,0);
+
+	surface.color = getBase(baseUV + parallaxOffset);
+	surface.alpha = getAlpha(baseUV);
+
+	surface.subSurfaceColor = getSubSurfaceColor();
+	surface.metallic = getMetallic(baseUV);
+
+	if (isUseRoughness())
+		surface.smoothness = getSmoothness(baseUV);
+	else
+		surface.smoothness = PerceptualRoughnessToPerceptualSmoothness(getSmoothness(baseUV));
+
+	surface.sheen = getSheen();
+	surface.sheenTint = getSheenTint();
+	surface.subsurface = getSubSurface();
+
+	surface.occlusion = getOcclusion(baseUV);
+	surface.depth = -TransformWorldToView(positionWS).z;
+
+	surface.ior = getIOR();
+	surface.dither = InterleavedGradientNoise(positionCS, 0);
+	surface.anisotropic = getAnisotropic();
+	surface.transmission = getTransmission();
+
+	return surface;
 }
 
 #endif
