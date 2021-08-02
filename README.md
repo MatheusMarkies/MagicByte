@@ -7,7 +7,7 @@
   <h1 align="center">Magic Byte Render Pipeline</h1>
 
   <p align="center">
-    An awesome README template to jumpstart your projects!
+    Rendering Pipeline for Unity 3D
     <br />
     <a href="https://github.com/MatheusMarkies/MagicByte/tree/master/MagicByte"><strong>Explore the docs »</strong></a>
         <a href="https://github.com/MatheusMarkies"><strong>Other projects »</strong></a>
@@ -36,11 +36,7 @@
       </ul>
     </li>
     <li><a href="#usage">Usage</a></li>
-    <li><a href="#roadmap">Roadmap</a></li>
-    <li><a href="#contributing">Contributing</a></li>
-    <li><a href="#license">License</a></li>
     <li><a href="#contact">Contact</a></li>
-    <li><a href="#acknowledgements">Acknowledgements</a></li>
   </ol>
 </details>
 
