@@ -67,12 +67,12 @@ Unity 2019.4.20f1 or newer.
 
 ### Installation
 
-1. Get a free API Key at [https://example.com](https://example.com)
+1. Download the package from the Asset Store
 2. Open a project<br />
 ![](https://i.ibb.co/NCg13N3/Magic-Byte-Inst1.png)<br />
 3. Go to Assets --> Import Package --> Custom Package
 ![](https://i.ibb.co/tKNJf2w/Magic-Byte-Inst2.png)<br />
-4. Selecione o "MagicByte.unitypackage"
+4. Select the "MagicByte.unitypackage"
 ![](https://i.ibb.co/7WzYPPW/Magic-Byte-Inst3.png)<br />
 5. Import the files<br />
 ![](https://i.ibb.co/3WhR44X/Magic-Byte-Inst4.png)<br />
