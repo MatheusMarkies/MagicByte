@@ -10,7 +10,7 @@
     Rendering Pipeline for Unity 3D
     <br />
     <a href="https://github.com/MatheusMarkies/MagicByte/tree/master/MagicByte"><strong>Explore the docs »</strong></a>
-        <a href="https://github.com/MatheusMarkies"><strong>Other projects »</strong></a>
+        <a href="https://github.com/MatheusMarkies/MagicByte-Essentials"><strong>Magic Byte Essentials »</strong></a>
     <br />
     <br />
     <a href="https://github.com/MatheusMarkies/MagicByte/issues">Report Bug</a>
