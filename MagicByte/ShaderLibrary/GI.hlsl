@@ -1,8 +1,8 @@
 ﻿#ifndef CUSTOM_GI_INCLUDED
 #define CUSTOM_GI_INCLUDED
 //https://github.com/TwoTailsGames/Unity-Built-in-Shaders/blob/master/CGIncludes/UnityGlobalIllumination.cginc
-#include "../Unity-RenderPipelineCore/ShaderLibrary/EntityLighting.hlsl"
-#include "../Unity-RenderPipelineCore/ShaderLibrary/ImageBasedLighting.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/EntityLighting.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/ImageBasedLighting.hlsl"
 
 TEXTURE2D(unity_Lightmap);
 SAMPLER(samplerunity_Lightmap);
@@ -34,9 +34,11 @@ struct GI {
 	float3 diffuse;
 	float3 specular;
 	float3 reflect;
+	float3 clearCoatReflect;
 	float3 refract;
 	ShadowMask shadowMask;
 };
+
 float3 SampleLightMap(float2 lightMapUV) {
 #if defined(LIGHTMAP_ON)
 	return SampleSingleLightmap(
@@ -85,7 +87,6 @@ float4 SampleLightProbeOcclusion(Surface surfaceWS) {
 	return unity_ProbesOcclusion;
 }
 
-
 float4 SampleBakedShadows(float2 lightMapUV, Surface surfaceWS) {
 #if defined(LIGHTMAP_ON)
 	return SAMPLE_TEXTURE2D(
@@ -106,7 +107,7 @@ float4 SampleBakedShadows(float2 lightMapUV, Surface surfaceWS) {
 #endif
 }
 
-float4 ChromaticAberrationReflection(float2 chromaticAberration, float3 uvw, float mip) {
+float4 chromaticAberrationReflection(float2 chromaticAberration, float3 uvw, float mip) {
 	float colR = SAMPLE_TEXTURECUBE_LOD(unity_SpecCube0, samplerunity_SpecCube0, float3(uvw.x - chromaticAberration.x, uvw.y - chromaticAberration.x, uvw.z - chromaticAberration.x), mip).r;
 	float colG = SAMPLE_TEXTURECUBE_LOD(unity_SpecCube0, samplerunity_SpecCube0, float3(uvw.x, uvw.y, uvw.z), mip).g;
 	float colB = SAMPLE_TEXTURECUBE_LOD(unity_SpecCube0, samplerunity_SpecCube0, float3(uvw.x + chromaticAberration.x, uvw.y + chromaticAberration.x, uvw.z + chromaticAberration.x), mip).b;
@@ -114,7 +115,7 @@ float4 ChromaticAberrationReflection(float2 chromaticAberration, float3 uvw, flo
 
 	return float4(lerp(float3(lerp(colR, colG, 0.1), lerp(colG, colB, 0.1), lerp(colR, colB, 0.1)), SAMPLE_TEXTURECUBE_LOD(unity_SpecCube0, samplerunity_SpecCube0, float3(uvw.x, uvw.y, uvw.z), mip), 0.25), 1);
 }
-float4 ChromaticAberrationRefraction(float2 chromaticAberration, float3 uvw, float mip) {
+float4 chromaticAberrationRefraction(float2 chromaticAberration, float3 uvw, float mip) {
 	float colR = SAMPLE_TEXTURECUBE_LOD(unity_SpecCube0, samplerunity_SpecCube0, float3(uvw.x - chromaticAberration.x, uvw.y - chromaticAberration.x, uvw.z - chromaticAberration.x), mip).r;
 	float colG = SAMPLE_TEXTURECUBE_LOD(unity_SpecCube0, samplerunity_SpecCube0, float3(uvw.x, uvw.y, uvw.z), mip).g;
 	float colB = SAMPLE_TEXTURECUBE_LOD(unity_SpecCube0, samplerunity_SpecCube0, float3(uvw.x + chromaticAberration.x, uvw.y + chromaticAberration.x, uvw.z + chromaticAberration.x), mip).b;
@@ -131,23 +132,13 @@ float3 SampleEnvironment(Surface surfaceWS, BRDF brdf) {
 	return DecodeHDREnvironment(environment, unity_SpecCube0_HDR);
 }
 
-float3 SampleEnvironmentNoBRDF(Surface surfaceWS, float Roughness) {
-	float3 uvw = reflect(-surfaceWS.viewDirection, surfaceWS.normal);
-	float mip = PerceptualRoughnessToMipmapLevel(Roughness);
-	float4 environment = SAMPLE_TEXTURECUBE_LOD(unity_SpecCube0, samplerunity_SpecCube0, uvw, mip);
-	return DecodeHDREnvironment(environment, unity_SpecCube0_HDR);
-}
-
-float3 SampleEnvironmentAnistropic(Surface surfaceWS, BRDF brdf, float Anistropic) {
-
+float3 SampleEnvironmentAnistropic(Surface surfaceWS, BRDF brdf) {
 	float3 AnistropicTg = cross(surfaceWS.viewDirection, surfaceWS.binormal);
 	float3 AnistropicNormal = cross(AnistropicTg, surfaceWS.binormal);
-	float3 reflectionNormal = normalize(lerp(surfaceWS.normal, AnistropicNormal, abs(Anistropic)));
-	//float3 reflection = surfaceWS.viewDirection - 2 * dot(reflectionNormal, surfaceWS.viewDirection) * reflectionNormal;
+	float3 reflectionNormal = normalize(lerp(surfaceWS.normal, AnistropicNormal, abs(surfaceWS.anisotropic)));
 
 	float3 uvw = reflect(-surfaceWS.viewDirection, reflectionNormal);
-	//float3 uvw = reflect(surfaceWS.normal,reflection);// reflect(-surfaceWS.viewDirection, surfaceWS.normal);
-	//float3 uvw = reflection;
+
 	float mip = PerceptualRoughnessToMipmapLevel(brdf.perceptualRoughness);
 	float4 environment = SAMPLE_TEXTURECUBE_LOD(unity_SpecCube0, samplerunity_SpecCube0, uvw, mip);
 	return DecodeHDREnvironment(environment, unity_SpecCube0_HDR);
@@ -155,7 +146,7 @@ float3 SampleEnvironmentAnistropic(Surface surfaceWS, BRDF brdf, float Anistropi
 
 float3 SampleReflect(Surface surfaceWS) {
 	float3 uvw = reflect(-surfaceWS.viewDirection, surfaceWS.normal);
-	float mip = PerceptualRoughnessToMipmapLevel(0);
+	float mip = PerceptualRoughnessToMipmapLevel(PerceptualSmoothnessToPerceptualRoughness(surfaceWS.smoothness));
 	float4 environment = SAMPLE_TEXTURECUBE_LOD(unity_SpecCube0, samplerunity_SpecCube0, uvw, mip);
 	return DecodeHDREnvironment(environment, unity_SpecCube0_HDR);
 }
@@ -168,154 +159,42 @@ float3 SampleEnvironmentRainy(Surface surfaceWS, BRDF brdf, float Mip, float2 uv
 	return DecodeHDREnvironment(environment, unity_SpecCube0_HDR);
 }
 
-float3 SampleReflect(Surface surfaceWS, float clearCoatRoughness) {
+float3 SampleClearCoat(Surface surfaceWS) {
 	float3 uvw = reflect(-surfaceWS.viewDirection, surfaceWS.normal);
-	float mip = PerceptualRoughnessToMipmapLevel(PerceptualSmoothnessToPerceptualRoughness(clearCoatRoughness));
+	float mip = PerceptualRoughnessToMipmapLevel(PerceptualSmoothnessToPerceptualRoughness(surfaceWS.clearCoatRoughness));
 	float4 environment = SAMPLE_TEXTURECUBE_LOD(unity_SpecCube0, samplerunity_SpecCube0, uvw, mip);
 	return DecodeHDREnvironment(environment, unity_SpecCube0_HDR);
 }
 
 float3 SampleRefract(Surface surfaceWS) {
-	float3 uvw = refract(-surfaceWS.viewDirection, surfaceWS.normal, 1);
-	float mip = PerceptualRoughnessToMipmapLevel(0);
+	float3 uvw = refract(-surfaceWS.viewDirection, surfaceWS.normal, surfaceWS.ior/10);
+	float mip = PerceptualRoughnessToMipmapLevel(1-surfaceWS.smoothness);
 	float4 environment = SAMPLE_TEXTURECUBE_LOD(unity_SpecCube0, samplerunity_SpecCube0, uvw, mip);
-	return DecodeHDREnvironment(environment + ChromaticAberrationRefraction(float2(0.002, 0.0005), uvw, mip), unity_SpecCube0_HDR);
-}
-
-float3 SampleRefract(Surface surfaceWS, float IOR, float refraction) {
-	float3 uvw = refract(-surfaceWS.viewDirection, surfaceWS.normal, IOR);
-	float mip = PerceptualRoughnessToMipmapLevel(0);
-	float4 environment = SAMPLE_TEXTURECUBE_LOD(unity_SpecCube0, samplerunity_SpecCube0, uvw, mip);
-	return DecodeHDREnvironment(environment + ChromaticAberrationRefraction(float2(0.002, 0.0005), uvw, mip), unity_SpecCube0_HDR) * refraction;
+	return DecodeHDREnvironment(environment + chromaticAberrationRefraction(float2(0.002, 0.0005), uvw, mip), unity_SpecCube0_HDR);
 }
 
 float3 SampleRefractRainy(Surface surfaceWS, float IOR, float refraction, float Mip, float2 uvRainy) {
 	float3 uvw = refract(-surfaceWS.viewDirection, surfaceWS.normal, IOR) + float3(uvRainy, 0);
 	float mip = Mip;
 	float4 environment = SAMPLE_TEXTURECUBE_LOD(unity_SpecCube0, samplerunity_SpecCube0, uvw, mip);
-	return DecodeHDREnvironment(environment + ChromaticAberrationRefraction(float2(0.002, 0.0005), uvw, mip), unity_SpecCube0_HDR) * refraction;
+	return DecodeHDREnvironment(environment + chromaticAberrationRefraction(float2(0.002, 0.0005), uvw, mip), unity_SpecCube0_HDR) * refraction;
 }
 
-//float diffuseMultiply = 2;
-
-GI GetGI(float2 lightMapUV, Surface surfaceWS, BRDF brdf) {
+GI getGI(float2 lightMapUV, Surface surfaceWS, BRDF brdf) {
 	GI gi;
 	gi.diffuse = SampleLightMap(lightMapUV) + SampleLightProbe(surfaceWS);
-	//gi.diffuse += SampleDynamicLightmap(dynamicLightmapUV);
-	////gi.diffuse *= diffuseMultiply;
+
 	gi.shadowMask.always = false;
 	gi.shadowMask.distance = false;
 	gi.shadowMask.shadows = 1.0;
-	gi.specular = SampleEnvironment(surfaceWS, brdf);
-	gi.reflect = SampleReflect(surfaceWS);
-	gi.refract = SampleRefract(surfaceWS);
 
-#if defined(_SHADOW_MASK_ALWAYS)
-	gi.shadowMask.always = true;
-	gi.shadowMask.shadows = SampleBakedShadows(lightMapUV, surfaceWS);
-#elif defined(_SHADOW_MASK_DISTANCE)
-	gi.shadowMask.distance = true;
-	gi.shadowMask.shadows = SampleBakedShadows(lightMapUV, surfaceWS);
-#endif
-	return gi;
-}
-
-GI GetGlassGI(float2 lightMapUV, Surface surfaceWS, BRDF brdf, float IOR, float refraction = 1) {
-	GI gi;
-	gi.diffuse = SampleLightMap(lightMapUV) + SampleLightProbe(surfaceWS);
-	//gi.diffuse += SampleDynamicLightmap(dynamicLightmapUV);
-	//gi.diffuse *= diffuseMultiply;
-	gi.shadowMask.always = false;
-	gi.shadowMask.distance = false;
-	gi.shadowMask.shadows = 1.0;
-	gi.specular = SampleEnvironment(surfaceWS, brdf);
-	gi.reflect = SampleReflect(surfaceWS);
-	gi.refract = SampleRefract(surfaceWS, IOR, refraction);
-#if defined(_SHADOW_MASK_ALWAYS)
-	gi.shadowMask.always = true;
-	gi.shadowMask.shadows = SampleBakedShadows(lightMapUV, surfaceWS);
-#elif defined(_SHADOW_MASK_DISTANCE)
-	gi.shadowMask.distance = true;
-	gi.shadowMask.shadows = SampleBakedShadows(lightMapUV, surfaceWS);
-#endif
-	return gi;
-}
-GI GetRainyGI(float2 lightMapUV, Surface surfaceWS, BRDF brdf, float IOR, float refraction = 1, float2 Mip = 1, float2 uvRainy = float2(1, 1)) {
-	GI gi;
-	gi.diffuse = SampleLightMap(lightMapUV) + SampleLightProbe(surfaceWS);
-	//gi.diffuse += SampleDynamicLightmap(dynamicLightmapUV);
-	////gi.diffuse *= diffuseMultiply;
-	gi.shadowMask.always = false;
-	gi.shadowMask.distance = false;
-	gi.shadowMask.shadows = 1.0;
-	gi.specular = SampleEnvironmentRainy(surfaceWS, brdf, Mip, uvRainy);
-	gi.reflect = SampleReflect(surfaceWS);
-	gi.refract = SampleRefractRainy(surfaceWS, IOR, refraction, Mip, uvRainy);
-#if defined(_SHADOW_MASK_ALWAYS)
-	gi.shadowMask.always = true;
-	gi.shadowMask.shadows = SampleBakedShadows(lightMapUV, surfaceWS);
-#elif defined(_SHADOW_MASK_DISTANCE)
-	gi.shadowMask.distance = true;
-	gi.shadowMask.shadows = SampleBakedShadows(lightMapUV, surfaceWS);
-#endif
-	return gi;
-}
-
-GI GetGI(float2 lightMapUV, Surface surfaceWS, BRDF brdf, float clearCoatRoughness) {
-	GI gi;
-	gi.diffuse = SampleLightMap(lightMapUV) + SampleLightProbe(surfaceWS);
-	//gi.diffuse += SampleDynamicLightmap(dynamicLightmapUV);
-	//gi.diffuse *= diffuseMultiply;
-	gi.shadowMask.always = false;
-	gi.shadowMask.distance = false;
-	gi.shadowMask.shadows = 1.0;
-	gi.specular = SampleEnvironment(surfaceWS, brdf);
-	gi.reflect = SampleReflect(surfaceWS, clearCoatRoughness);
-	gi.refract = SampleRefract(surfaceWS);
-#if defined(_SHADOW_MASK_ALWAYS)
-	gi.shadowMask.always = true;
-	gi.shadowMask.shadows = SampleBakedShadows(lightMapUV, surfaceWS);
-#elif defined(_SHADOW_MASK_DISTANCE)
-	gi.shadowMask.distance = true;
-	gi.shadowMask.shadows = SampleBakedShadows(lightMapUV, surfaceWS);
-#endif
-	return gi;
-}
-
-GI GetGI(float2 lightMapUV, Surface surfaceWS, float Roughness, float clearCoatRoughness) {
-	GI gi;
-	gi.diffuse = SampleLightMap(lightMapUV) + SampleLightProbe(surfaceWS);
-	//gi.diffuse += SampleDynamicLightmap(dynamicLightmapUV);
-	//gi.diffuse *= diffuseMultiply;
-	gi.shadowMask.always = false;
-	gi.shadowMask.distance = false;
-	gi.shadowMask.shadows = 1.0;
-	gi.specular = SampleEnvironmentNoBRDF(surfaceWS, Roughness);
-	gi.reflect = SampleReflect(surfaceWS, clearCoatRoughness);
-	gi.refract = SampleRefract(surfaceWS);
-#if defined(_SHADOW_MASK_ALWAYS)
-	gi.shadowMask.always = true;
-	gi.shadowMask.shadows = SampleBakedShadows(lightMapUV, surfaceWS);
-#elif defined(_SHADOW_MASK_DISTANCE)
-	gi.shadowMask.distance = true;
-	gi.shadowMask.shadows = SampleBakedShadows(lightMapUV, surfaceWS);
-#endif
-	return gi;
-}
-
-GI GetGIAnistropic(float2 lightMapUV, Surface surfaceWS, BRDF brdf, float Anistropic) {
-	GI gi;
-	gi.diffuse = SampleLightMap(lightMapUV) + SampleLightProbe(surfaceWS);
-	//gi.diffuse += SampleDynamicLightmap(dynamicLightmapUV);
-	//gi.diffuse *= diffuseMultiply;
-	gi.shadowMask.always = false;
-	gi.shadowMask.distance = false;
-	gi.shadowMask.shadows = 1.0;
-	if (Anistropic > 0)
-		gi.specular = SampleEnvironmentAnistropic(surfaceWS, brdf, Anistropic);
+	if (surfaceWS.anisotropic != 0)
+		gi.specular = SampleEnvironmentAnistropic(surfaceWS, brdf);
 	else
 		gi.specular = SampleEnvironment(surfaceWS, brdf);
+
 	gi.reflect = SampleReflect(surfaceWS);
+	gi.clearCoatReflect = SampleClearCoat(surfaceWS);
 	gi.refract = SampleRefract(surfaceWS);
 #if defined(_SHADOW_MASK_ALWAYS)
 	gi.shadowMask.always = true;
@@ -326,30 +205,5 @@ GI GetGIAnistropic(float2 lightMapUV, Surface surfaceWS, BRDF brdf, float Anistr
 #endif
 	return gi;
 }
-
-GI GetGIAnistropic(float2 lightMapUV, Surface surfaceWS, BRDF brdf, float clearCoatRoughness, float Anistropic) {
-	GI gi;
-	gi.diffuse = SampleLightMap(lightMapUV) + SampleLightProbe(surfaceWS);
-	//gi.diffuse += SampleDynamicLightmap(dynamicLightmapUV);
-	//gi.diffuse *= diffuseMultiply;
-	gi.shadowMask.always = false;
-	gi.shadowMask.distance = false;
-	gi.shadowMask.shadows = 1.0;
-	if (Anistropic > 0)
-		gi.specular = SampleEnvironmentAnistropic(surfaceWS, brdf, Anistropic);
-	else
-		gi.specular = SampleEnvironment(surfaceWS, brdf);
-	gi.reflect = SampleReflect(surfaceWS, clearCoatRoughness);
-	gi.refract = SampleRefract(surfaceWS);
-#if defined(_SHADOW_MASK_ALWAYS)
-	gi.shadowMask.always = true;
-	gi.shadowMask.shadows = SampleBakedShadows(lightMapUV, surfaceWS);
-#elif defined(_SHADOW_MASK_DISTANCE)
-	gi.shadowMask.distance = true;
-	gi.shadowMask.shadows = SampleBakedShadows(lightMapUV, surfaceWS);
-#endif
-	return gi;
-}
-
 
 #endif

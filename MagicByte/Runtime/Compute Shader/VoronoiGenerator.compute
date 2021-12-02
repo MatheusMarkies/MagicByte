@@ -45,6 +45,9 @@ float3 Voronoi(float3 pos)
 [numthreads(8, 8, 1)]
 void CSMain(uint3 id : SV_DispatchThreadID)
 {
-	float3 vor = Voronoi(float3(id.x * 200, id.y *200, 1));
+	int width, height;
+	Result.GetDimensions(width, height);
+	float2 uv = float2((id.xy + float2(0.5f, 0.5f)) / float2(width, height) * 2.0f - 1.0f);
+	float3 vor = Voronoi(float3(id.x/6, id.y/6, 3));
 	Result[id.xy] = float4(vor.r, vor.g, vor.b, 1);
 }

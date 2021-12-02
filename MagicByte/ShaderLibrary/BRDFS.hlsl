@@ -43,7 +43,7 @@ float3 BRDF_AshikhminShirley( float3 L, float3 V, float3 N, float3 X, float3 Y )
 //# Blinn implementation of Torrance-Sparrow
 //# [type] [name] [min val] [max val] [default val]
 
-::begin parameters
+//::begin parameters
 //float n 1 100 10
 //float ior 1 2.5 1.5
 //bool include_Fresnel 0

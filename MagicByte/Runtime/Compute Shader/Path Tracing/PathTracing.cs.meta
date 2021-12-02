@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: cd4aff183b5ba644ca98288947230475
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - computeShader: {fileID: 7200000, guid: 507a04e1855f5354ba3e0157ffa733d0, type: 3}
+  - Skybox: {instanceID: 0}
+  - directionalLight: {instanceID: 0}
+  - additiveShader: {fileID: 4800000, guid: d472f54ee50c7ce46af8f17114369b8a, type: 3}
+  - additiveMaterial: {instanceID: 0}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

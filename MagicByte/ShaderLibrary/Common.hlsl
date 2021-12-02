@@ -1,8 +1,8 @@
 ﻿#ifndef COMMON_INCLUDED
 #define COMMON_INCLUDED
 
-#include "../Unity-RenderPipelineCore/ShaderLibrary/Common.hlsl"
-#include "../Unity-RenderPipelineCore/ShaderLibrary/CommonMaterial.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonMaterial.hlsl"
 #include "UnityInput.hlsl"
 
 #define UNITY_MATRIX_M unity_ObjectToWorld
@@ -15,9 +15,9 @@
 	#define SHADOWS_SHADOWMASK
 #endif
 
-#include "../Unity-RenderPipelineCore/ShaderLibrary/UnityInstancing.hlsl"
-#include "../Unity-RenderPipelineCore/ShaderLibrary/SpaceTransforms.hlsl"
-#include "../Unity-RenderPipelineCore/ShaderLibrary/Packing.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/SpaceTransforms.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
 
 float3 DecodeNormal (float4 sample, float scale) {
 	#if defined(UNITY_NO_DXT5nm)
@@ -40,6 +40,9 @@ float Square (float x) {
 float DistanceSquared(float3 pA, float3 pB) {
 	return dot(pA - pB, pA - pB);
 }
+float Pit(float A, float B) {
+	return sqrt(A * A + B * B);
+}
 
 void ClipLOD (float2 positionCS, float fade) {
 	#if defined(LOD_FADE_CROSSFADE)
@@ -48,8 +51,17 @@ void ClipLOD (float2 positionCS, float fade) {
 	#endif
 }
 
+float IORtoF0(float ior) {
+	return ((ior - 1) * (ior - 1)) / ((ior + 1) * (ior + 1));
+}
+
 float Fresnel(float fresnelStrength, float3 normal,float3 viewDirection){
 return fresnelStrength * Pow4(1.0 - saturate(dot(normal, viewDirection)));
+}
+
+float FresnelBRDF(float f0, float u)
+{
+	return f0 + (1 - f0) * pow(1 - u, 5);
 }
 
 #endif

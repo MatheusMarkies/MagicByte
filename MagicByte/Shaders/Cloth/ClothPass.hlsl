@@ -1,18 +1,15 @@
-﻿#ifndef LIT_PASS_INCLUDED
-#define LIT_PASS_INCLUDED
+﻿#ifndef DEFAULT_PASS_INCLUDED
+#define DEFAULT_PASS_INCLUDED
 
-#include "../../ShaderLibrary/Surface.hlsl"
+//#include "../../ShaderLibrary/Surface.hlsl"
 #include "../../ShaderLibrary/Shadows.hlsl"
 #include "../../ShaderLibrary/Light.hlsl"
-#include "../../ShaderLibrary/BRDFCloth.hlsl"
-#include "../../ShaderLibrary/GI.hlsl"
 #include "../../ShaderLibrary/Lighting.hlsl"
+#include "../../ShaderLibrary/BSDF.hlsl"
+#include "../../ShaderLibrary/GI.hlsl"
+#include "../../ShaderLibrary/Noise.hlsl"
 #include "../../ShaderLibrary/ClearCoat.hlsl"
-
-TEXTURE2D(_ScatteringMask);
-SAMPLER(sampler_ScatteringMask);
-
-float _Scattering;
+#include "../../ShaderLibrary/ColorFunction.hlsl"
 
 struct Attributes {
 	float3 positionOS : POSITION;
@@ -20,7 +17,7 @@ struct Attributes {
 	float4 tangentOS : TANGENT;
 	float2 baseUV : TEXCOORD0;
 	GI_ATTRIBUTE_DATA
-		UNITY_VERTEX_INPUT_INSTANCE_ID
+	UNITY_VERTEX_INPUT_INSTANCE_ID
 };
 
 struct Varyings {
@@ -31,7 +28,7 @@ struct Varyings {
 	float2 baseUV : VAR_BASE_UV;
 	float2 detailUV : VAR_DETAIL_UV;
 	GI_VARYINGS_DATA
-		UNITY_VERTEX_INPUT_INSTANCE_ID
+	UNITY_VERTEX_INPUT_INSTANCE_ID
 };
 
 Varyings LitPassVertex (Attributes input) {
@@ -41,98 +38,73 @@ Varyings LitPassVertex (Attributes input) {
 	UNITY_TRANSFER_INSTANCE_ID(input, output);
 	TRANSFER_GI_DATA(input, output);
 
+	if (UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _HeightMode) == 0) {
+		input.positionOS.x += getHeight(input.baseUV).x;
+		input.positionOS.y += getHeight(input.baseUV).y;
+	}
+
 	output.positionWS = TransformObjectToWorld(input.positionOS);
 	output.positionCS = TransformWorldToHClip(output.positionWS);
 	output.normalWS = TransformObjectToWorldNormal(input.normalOS);
 	output.tangentWS = float4(TransformObjectToWorldDir(input.tangentOS.xyz), input.tangentOS.w);
+
 	output.baseUV = TransformBaseUV(input.baseUV);
 	output.detailUV = TransformDetailUV(input.baseUV);
+
 	return output;
 }
-float4 _Time;
-float _DetailNormalTile;
 
-TEXTURE2D(_AlphaMap);
-SAMPLER(sampler_AlphaMap);
-
-float3 GetLighting(Surface surface, BRDF brdf, Light light) {
-	return IncomingLight(surface, light) * DirectBRDF(surface, brdf, light);
+/*Lighting*/
+float3 mergeLighting(Surface surface, BRDF brdf, Light light) {
+	//To edit the BRDF template used just change the field below : *DirectBSDF*
+	return IncomingLight(surface, light) * DirectBSDF(surface, brdf, light, surface.ior);
 }
 
-float3 GetLighting(Surface surfaceWS, BRDF brdf, GI gi) {
+float3 getDirectLighting(Surface surfaceWS, BRDF brdf, GI gi) {
+	float3 color = float3(0, 0, 0);
+
 	ShadowData shadowData = GetShadowData(surfaceWS);
 	shadowData.shadowMask = gi.shadowMask;
 
-	float3 color = IndirectBRDF(surfaceWS, brdf, gi.diffuse, gi.specular);
 	for (int i = 0; i < GetDirectionalLightCount(); i++) {
 		Light light = GetDirectionalLight(i, surfaceWS, shadowData);
-		float3 lightDir = light.direction + surfaceWS.normal;
-		float3 translucency = (pow(saturate(dot(surfaceWS.viewDirection, -lightDir)), 1.25f) * 3 + gi.diffuse * 1) *light.attenuation * _Scattering; //* light.distanceAttenuation;
-		// color += scattering * (light.color * 1.5) + surfaceWS.color * scattering;
-		color += surfaceWS.color * light.color * translucency;
+		color += mergeLighting(surfaceWS, brdf, light);
 	}
-
 	for (int j = 0; j < GetOtherLightCount(); j++) {
 		Light light = GetOtherLight(j, surfaceWS, shadowData);
-		float3 lightDir = light.direction + surfaceWS.normal;
-		float3 translucency = (pow(saturate(dot(surfaceWS.viewDirection, -lightDir)), 1.25f) * 3 + gi.diffuse * 1) *light.attenuation * _Scattering; //* light.distanceAttenuation;
-		// color += scattering * (light.color * 1.5) + surfaceWS.color * scattering;
-		color += surfaceWS.color * light.color * translucency;
+		color += mergeLighting(surfaceWS, brdf, light);
 	}
 
 	return color;
 }
+/*End Lighting*/
 
-float4 LitPassFragment (Varyings input) : SV_TARGET {
+float4 LitPassFragment(Varyings input) : SV_TARGET{
 	UNITY_SETUP_INSTANCE_ID(input);
 
-	float4 base = GetBase(input.baseUV, input.detailUV);
+    Surface surface = getSurface(input.baseUV, input.positionWS, input.positionCS, input.normalWS, input.tangentWS);
+
 	#if defined(_CLIPPING)
-		clip(base.a - GetCutoff(input.baseUV));
+		clip(surface.alpha - max(getCutoff(), surface.alpha));
 	#endif
 
 	ClipLOD(input.positionCS.xy, unity_LODFade.x);
+	clip(SAMPLE_TEXTURE2D(_AlphaMap, sampler_AlphaMap, input.baseUV).r - 0.1);
 
-	Surface surface;
-	surface.position = input.positionWS;
-	surface.normal = NormalTangentToWorld(GetNormalTS(input.baseUV, input.detailUV * _DetailNormalTile), input.normalWS, input.tangentWS);
-	surface.interpolatedNormal = input.normalWS;
-	surface.viewDirection = normalize(_WorldSpaceCameraPos - input.positionWS);
-	surface.depth = -TransformWorldToView(input.positionWS).z;
-	surface.tangent = input.tangentWS;
-	surface.binormal = cross(NormalTangentToWorld(GetNormalTS(input.baseUV, input.detailUV), input.normalWS, input.tangentWS), input.tangentWS.xyz) * input.tangentWS.w;
-	surface.color = base.rgb;
-	surface.alpha = SAMPLE_TEXTURE2D(_AlphaMap, sampler_AlphaMap, input.baseUV).r;
-	clip(SAMPLE_TEXTURE2D(_AlphaMap, sampler_AlphaMap, input.baseUV).r - GetCutoff(input.baseUV));
-	surface.metallic = GetMetallic(input.baseUV);
-	if(UseRoughness() == 0)
-	surface.smoothness = GetSmoothness(input.baseUV);
-	else
-	surface.smoothness = PerceptualRoughnessToPerceptualSmoothness(GetSmoothness(input.baseUV));
+	//Get BRDF structure
+	BRDF brdf = getBRDF(surface);
 
-	surface.occlusion = GetOcclusion(input.baseUV);
+	/*GI*/
+	GI gi = getGI(GI_FRAGMENT_DATA(input), surface, brdf);
+	/*End GI*/
 
-	surface.fresnelStrength = GetFresnel();
-	surface.dither = InterleavedGradientNoise(input.positionCS.xy, 0);
+	float3 color = getDirectLighting(surface, brdf, gi);
+	color += getLighting(surface, brdf, gi);
+	
+	if (UseClearCoat() == 1)
+		color += ClearCoat(surface.clearCoatRoughness, surface, gi, brdf);
 
-	surface.anisotropic = 0;
-
-	#if defined(_PREMULTIPLY_ALPHA)
-		BRDF brdf = GetBRDF(surface, true);
-	#else
-		BRDF brdf = GetBRDF(surface);
-	#endif
-
-	GI gi = GetGI(GI_FRAGMENT_DATA(input), surface, brdf);
-
-	float3 color = (0, 0, 0);
-
-	color = GetLighting(surface, brdf, gi);
-
-	//color += color;
-	color += GetEmission(input.baseUV);
-
-	return float4(color, surface.alpha);
+	return float4(color , surface.alpha);
 }
 
 #endif

@@ -1,14 +1,366 @@
-﻿// Each #kernel tells which function to compile; you can have many kernels
+// Each #kernel tells which function to compile; you can have many kernels
 #pragma kernel CSMain
 
-// Create a RenderTexture with enableRandomWrite flag and set it
-// with cs.SetTexture
+#define PI 3.14159265359
+#define EPSILON 0.0000001
+
 RWTexture2D<float4> Result;
+
+float _Seed;
+float screenGamma = 2.2f;
+
+struct pathTracingObject
+{
+    float4 Position;
+
+    int indicesCount;
+    int indicesOffset;
+
+    float4x4 localToWorldMatrix;
+
+    float3 MainColor;
+    float Metallic;
+    float Smoothness;
+    float3 Emission;
+    float Transmission;
+};
+
+float4 _DirectionalLight;
+float3 _DirectionalLightColor;
+
+StructuredBuffer<pathTracingObject> _pathTracingObject;
+StructuredBuffer<float3> _Vertices;
+StructuredBuffer<int> _Indices;
+
+int _pathTracingObjectCount;
+
+float4x4 _CameraToWorld;
+float3 _WorldSpaceCameraPosition;
+float4x4 _CameraInverseProjection;
+   
+Texture2D<float4> _SkyboxTexture;
+SamplerState sampler_SkyboxTexture;
+
+float2 _Pixel;
+
+float rand()
+{
+    float result = frac(sin(_Seed / 100.0f * dot(_Pixel, float2(12.9898f, 78.233f))) * 43758.5453f);
+    _Seed += 1.0f;
+    return result;
+}
+
+struct Ray
+{
+    float3 Source;
+    float3 Direction;
+    float3 Color;
+};
+Ray CreateRay(float3 Source, float3 Direction)
+{
+    Ray ray;
+    ray.Source = Source;
+    ray.Direction = Direction;
+    ray.Color = _DirectionalLightColor * _DirectionalLight.w;//float3(1.0f, 1.0f, 1.0f);
+    return ray;
+}
+Ray CreateCameraRay(float2 uv)
+{
+    float3 Source = mul(_CameraToWorld, float4(0.0f, 0.0f, 0.0f, 1.0f)).xyz;
+
+    float3 Direction = mul(_CameraInverseProjection, float4(uv, 0.0f, 1.0f)).xyz;
+
+    Direction = mul(_CameraToWorld, float4(Direction, 0.0f)).xyz;
+    Direction = normalize(Direction);
+    return CreateRay(Source, Direction);
+}
+
+float3 SampleSunHemisphere()
+{
+    float cosTheta = rand();
+    float sinTheta = sqrt(1.0f - cosTheta * cosTheta);
+    float phi = 2 * PI * rand();
+    return float3(cos(phi) * sinTheta, sin(phi) * sinTheta, cosTheta);
+}
+
+Ray CreateSunRay()
+{
+    float3 source = _DirectionalLight.xyz;
+    float3 direction = SampleSunHemisphere();
+    return CreateRay(source, direction);
+}
+
+struct RayHit
+{
+    float3 Position;
+    float Distance;
+    float3 Normal;
+
+    float3 Albedo;
+    float Metallic;
+    float Smoothness;
+    float3 Emission;
+    float Transmission;
+};
+RayHit CreateRayHit()
+{
+    RayHit hit;
+    hit.Position = float3(0.0f, 0.0f, 0.0f);
+    hit.Distance = 1.#INF;
+    hit.Normal = float3(0.0f, 0.0f, 0.0f);
+
+    hit.Albedo = float3(0.0f,0.0f,0.0f);
+    hit.Metallic = 1.0f;
+    hit.Smoothness = 1.0f;
+    hit.Emission = float3(0.0f,0.0f,0.0f);
+    hit.Transmission = 1.0f;
+
+    return hit;
+
+}
+
+//
+/*
+http://www.graphics.cornell.edu/pubs/1997/MT97.html
+https://www.scratchapixel.com/lessons/3d-basic-rendering/ray-tracing-rendering-a-triangle/barycentric-coordinates
+*/
+bool IntersectTriangle(Ray ray, float3 vert0, float3 vert1, float3 vert2, inout float t, inout float u, inout float v)
+{
+    float3 edge1 = vert1 - vert0;
+    float3 edge2 = vert2 - vert0;
+    float3 pvec = cross(ray.Direction, edge2);
+    float det = dot(edge1, pvec);
+    if (det < EPSILON)
+        return false;
+    float inv_det = 1.0f / det;
+    float3 tvec = ray.Source - vert0;
+    u = dot(tvec, pvec) * inv_det;
+    if (u < 0.0 || u > 1.0f)
+        return false;
+    float3 qvec = cross(tvec, edge1);
+    v = dot(ray.Direction, qvec) * inv_det;
+    if (v < 0.0 || u + v > 1.0f)
+        return false;
+    t = dot(edge2, qvec) * inv_det;
+    return true;
+}
+
+
+void IntersectMeshObject(pathTracingObject pto, Ray ray, inout RayHit bestHit)
+{
+    for (int i = 0; i < pto.indicesCount; i += 3) {
+        float3 v0 = (mul(pto.localToWorldMatrix, float4(_Vertices[_Indices[pto.indicesOffset + i]], 1))).xyz;
+        float3 v1 = (mul(pto.localToWorldMatrix, float4(_Vertices[_Indices[pto.indicesOffset + i + 1]], 1))).xyz;
+        float3 v2 = (mul(pto.localToWorldMatrix, float4(_Vertices[_Indices[pto.indicesOffset + i + 2]], 1))).xyz;
+
+        float t, u, v;
+        if (IntersectTriangle(ray, v0, v1, v2, t, u, v))
+        {
+            if (t > 0 && t < bestHit.Distance)
+            {           
+                bestHit.Distance = t;
+                bestHit.Position = ray.Source + t * ray.Direction;
+
+                bestHit.Albedo = pto.MainColor;
+                bestHit.Metallic = pto.Metallic;
+                bestHit.Smoothness = pto.Smoothness;
+                bestHit.Emission = pto.Emission * 1;
+                bestHit.Transmission = pto.Transmission;
+            }
+        }
+
+    }
+}
+
+void IntersectSphere(Ray ray, inout RayHit bestHit, pathTracingObject pto, float4 sphere)
+{
+    float3 d = ray.Source - sphere.xyz;
+    float p1 = -dot(ray.Direction, d);
+    float p2sqr = p1 * p1 - dot(d, d) + sphere.w * sphere.w;
+    if (p2sqr < 0)
+        return;
+    float p2 = sqrt(p2sqr);
+    float t = p1 - p2 > 0 ? p1 - p2 : p1 + p2;
+    if (t > 0 && t < bestHit.Distance)
+    {
+        bestHit.Distance = t;
+        bestHit.Position = ray.Source + t * ray.Direction;
+        bestHit.Normal = normalize(bestHit.Position - sphere.xyz);
+
+        
+        bestHit.Albedo = pto.MainColor;
+        bestHit.Metallic = pto.Metallic;
+        bestHit.Smoothness = pto.Smoothness;
+        bestHit.Emission = pto.Emission;
+        bestHit.Transmission = pto.Transmission;
+    }
+}
+
+void IntersectGroundPlane(Ray ray, inout RayHit bestHit)
+{
+    float t = -ray.Source.y / ray.Direction.y;
+    if (t > 0 && t < bestHit.Distance)
+    {
+        bestHit.Distance = t;
+        bestHit.Position = ray.Source + t * ray.Direction;
+        bestHit.Normal = float3(0.0f, 1.0f, 0.0f);
+
+        bestHit.Albedo = float3(0.8f,0.8f,0.8f);
+        bestHit.Metallic = 1.0f;
+        bestHit.Smoothness = 0.0f;
+        bestHit.Emission = float3(0.0f,0.0f,0.0f);
+        bestHit.Transmission = 0.0f;
+    }
+}
+
+RayHit Trace(Ray ray)
+{
+    RayHit bestHit = CreateRayHit();
+
+    IntersectGroundPlane(ray, bestHit);
+
+    for (int i = 0; i < _pathTracingObjectCount; i++) {
+        pathTracingObject pto = _pathTracingObject[i];
+        IntersectMeshObject(pto, ray, bestHit);
+        //IntersectSphere(ray, bestHit, pto, float4(pto.Position.xyz, 1));
+    }
+
+    return bestHit;
+}
+
+float3x3 GetTangentSpace(float3 Normal)
+{
+    float3 helper = float3(1, 0, 0);
+    if (abs(Normal.x) > 0.99f)
+        helper = float3(0, 0, 1);
+
+    float3 tangent = normalize(cross(Normal, helper));
+    float3 biNormal = normalize(cross(Normal, tangent));
+    return float3x3(tangent, biNormal, Normal);
+}
+
+float3 SampleHemisphere(float3 normal, float alpha)
+{
+    float cosTheta = pow(rand(), 1.0f / (alpha + 1.0f));
+    float sinTheta = sqrt(1.0f - cosTheta * cosTheta);
+    float phi = 2 * PI * rand();
+    float3 tangentSpaceDir = float3(cos(phi) * sinTheta, sin(phi) * sinTheta, cosTheta);
+
+    return mul(tangentSpaceDir, GetTangentSpace(normal));
+}
+
+float SmoothnessToPhongAlpha(float s)
+{
+    return pow(1000.0f, s * s);
+}
+
+float sdot(float3 x, float3 y, float f = 1.0f)
+{
+    return saturate(dot(x, y) * f);
+}
+
+float Energy(float3 color)
+{
+    return dot(color, 1.0f / 3.0f);
+}
+
+float3 Shade(inout Ray ray, RayHit hit)
+{
+        float3 Specular = float3(hit.Smoothness, hit.Smoothness, hit.Smoothness);
+        float3 Albedo = hit.Albedo * hit.Metallic;
+        float3 Transmission = float3(0.0f,0.0f,0.0f);
+
+        //float transmissionChance = Energy(Transmission);
+
+        float specularChance = Energy(Specular);
+        float diffuseChance = Energy(Albedo);
+
+        float sum = specularChance + diffuseChance;
+        specularChance /= sum;
+        diffuseChance /= sum;
+        //transmissionChance /= (diffuseChance + transmissionChance);
+
+         float alpha = SmoothnessToPhongAlpha(hit.Smoothness);
+         float f = (alpha + 2) / (alpha + 1);
+
+        float roulette = rand();
+
+    if (hit.Distance < 1.#INF)
+    {
+
+/* if(roulette > hit.Transmission)
+{
+        ray.Source = hit.Position + hit.Normal * 0.001f;
+        ray.Direction = refract(ray.Direction, hit.Normal,1.0f);
+        Transmission = _DirectionalLightColor * hit.Transmission;
+}
+else{
+    roulette = rand(); */
+if (roulette < specularChance)
+{
+        ray.Source = hit.Position + hit.Normal * 0.001f;
+        ray.Direction = SampleHemisphere(reflect(ray.Direction, hit.Normal), alpha);
+        Specular *= (1/specularChance);
+}
+else
+{
+       ray.Source = hit.Position + hit.Normal * 0.001f;
+        ray.Direction = SampleHemisphere(hit.Normal, alpha);
+        Albedo *= (1/diffuseChance) * 2;
+}
+//}
+
+ray.Color = ray.Color *Albedo + hit.Emission;// ((Albedo + Specular + Transmission) * sdot(hit.Normal, ray.Direction, f) + hit.Emission);
+
+        return hit.Emission;
+    }
+    
+    else
+    {
+        ray.Color = 0.0f;
+
+        float theta = acos(ray.Direction.y) / -PI;
+        float phi = atan2(ray.Direction.x, -ray.Direction.z) / -PI * 0.5f;
+        return _SkyboxTexture.SampleLevel(sampler_SkyboxTexture, float2(phi, theta), 0).xyz;
+    }
+}
+
+
+float3 MonteCarlo(int spp, float2 uv) {
+    int N = spp;
+    float3 indirLigthingApprox = float3(0, 0, 0);
+
+    for (int n = 0; n < N; ++n) {
+
+        Ray ray = CreateCameraRay(uv);
+        Ray sunRay = CreateSunRay();
+
+        for (int i = 0; i < 6; i++) {
+
+    RayHit hit = Trace(ray);
+    //RayHit sunHit = Trace(sunRay);
+
+    indirLigthingApprox += ray.Color * Shade(ray, hit);
+
+    if (!any(ray.Color))
+        break;
+        }
+    }
+
+    indirLigthingApprox /= N;
+    return indirLigthingApprox;
+}
 
 [numthreads(8,8,1)]
 void CSMain (uint3 id : SV_DispatchThreadID)
 {
-    // TODO: insert actual code here!
+    int width, height;
+    Result.GetDimensions(width, height);
+    float2 uv = float2((id.xy + float2(0.5f, 0.5f)) / float2(width, height) * 2.0f - 1.0f);
 
-    Result[id.xy] = float4(id.x & id.y, (id.x & 15)/15.0, (id.y & 15)/15.0, 0.0);
+    Ray ray = CreateCameraRay(uv);
+
+    _Pixel = id.xy;
+
+    Result[id.xy] = float4(MonteCarlo(1,uv), 0);
 }

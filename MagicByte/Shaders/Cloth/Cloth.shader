@@ -1,57 +1,97 @@
-﻿Shader "Magic Byte/Cloth" {
-	
+﻿Shader "Hidden/Magic Byte/Cloth" {
+	/*
+	These properties can be edited.
+    The properties below are connected with Magic Byte's Default LitInput, adding a new one you will also have to add it to the Shader Pass.
+	*/
 	Properties {
 		_BaseMap("Texture", 2D) = "white" {}
-		_BaseColor("Color", Color) = (0.5, 0.5, 0.5, 1.0)
-		_Cutoff ("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
-		[Toggle(_CLIPPING)] _Clipping ("Alpha Clipping", Float) = 0
-		[Toggle(_RECEIVE_SHADOWS)] _ReceiveShadows ("Receive Shadows", Float) = 1
-		[KeywordEnum(On, Clip, Dither, Off)] _Shadows ("Shadows", Float) = 0
-			 _AlphaMap("Alpha", 2D) = "white" {}
-		_Metallic ("Metallic", Range(0, 1)) = 0
-		_Smoothness ("Smoothness", Range(0, 1)) = 0
-		_Occlusion ("Occlusion", Range(0, 1)) = 1
-		_DetailMap ( "Detail" , 2D ) = "linearGrey" {}
-		_DetailAlbedo("Detail Albedo", Range(0, 1)) = 1
-		[NoScaleOffset] _OcclusionMap("Occlusion Map(AO)", 2D) = "white" {}
+		_BaseColor("Color", Color) = (0.83, 0.83, 0.83, 1.0)
+		_SubSurfaceColor("Sub Surface Color", Color) = (0.8, 0.43, 0.2, 1.0)
+
+		_Cutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
+		[Toggle(_CLIPPING)] _Clipping("Alpha Clipping", Float) = 0
+		[Toggle(_RECEIVE_SHADOWS)] _ReceiveShadows("Receive Shadows", Float) = 1
+
+		[HideInInspector][KeywordEnum(On, Clip, Dither, Off)] _Shadows("Shadows", Float) = 0
+
+		[NoScaleOffset]_AlphaMap("Alpha", 2D) = "white" {}
+
+		[NoScaleOffset] _MetalMap("Metallic Map", 2D) = "white" {}
+
 		[Enum(Smoothness, 0, Roughness, 1)] _UseRoughness("Smoothness/Roughness", Float) = 0
 		[NoScaleOffset] _SmoothnessMap("Smoothness Map(Specular)", 2D) = "white" {}
-		[NoScaleOffset] _MetalMap("Metallic Map", 2D) = "white" {}
-		_Scattering("Scattering",Range(0,1))=1
-		//[NoScaleOffset] _DetailSmoothness("Detail Smoothness", Range(0, 1)) = 1
+
+		[NoScaleOffset] _OcclusionMap("Occlusion Map(AO)", 2D) = "white" {}
+
+		[NoScaleOffset] _HeightMap("Height Map", 2D) = "white" {}
+
+		[Enum(Vertex, 0, Pixel, 1)] _HeightMode("Height Mode", Float) = 0
+
+		_Height("Height", Range(0, 0.1)) = 0.004
+
+		_Metallic("Metallic", Range(0, 1)) = 0
+		_Smoothness("Smoothness", Range(0, 1)) = 0.0
+
+		_Occlusion("Occlusion", Range(0, 1)) = 1
+
+		_Sheen("Sheen", Range(0, 1)) = 0
+		_SheenTint("Sheen Tint", Range(0, 1)) = 0
+		_SubSurface("Sub Surface", Range(0, 1)) = 0
+		_Anisotropic("Anisotropic", Range(-0.95,0.95)) = 0.0
+        _Transmission("Transmission", Range(0,1)) = 0.0
+
 		[NoScaleOffset] _EmissionMap("Emission", 2D) = "white" {}
 		[HDR] _EmissionColor("Emission", Color) = (0.0, 0.0, 0.0, 0.0)
 
 		[NoScaleOffset] _NormalMap("Normals", 2D) = "bump" {}
 		_NormalStrength("Normal Strength", Range(0, 1)) = 1
 
-		[NoScaleOffset] _DetailNormalMap("Detail Normals", 2D) = "bump" {}
-		_DetailNormalStrength("Detail Normal Strength", Range(0, 1)) = 1
-		_DetailNormalTile("Detail Normal Tile", Float) = 1
+		_IOR("IOR", Range(0, 10)) = 0.1
+		_ScatteringScale("Scattering Scale", Range(0.0, 1.0)) = 0.1
 
-		[Enum(Off, 0, On, 1)] _Scattering("Scattering", Float) = 1
-        [NoScaleOffset] _ScatteringMask("Scattering Mask", 2D) = "white" {}
-		_ScatteringAmplitude("Scattering Amplitude",Float) = 1
-		_ScatteringScale("Scattering Scale",Float) = 0.03
+		[Enum(Off, 0, On, 1)] _UseClearCoat("Clear Coat", Float) = 0
 
-		//_AnisotropicX("AnisotropicX", Range(-1,1)) = 0.0
-		//_AnisotropicY("AnisotropicY", Range(-1,1)) = 0.0
-		_Fresnel("Reflectance", Range(0,1)) = 0.0
+		_ClearCoatRoughness("Coat Roughness", Range(0, 1)) = 1
 
-		[Enum(UnityEngine.Rendering.BlendMode)] _SrcBlend ("Src Blend", Float) = 1
-		[Enum(UnityEngine.Rendering.BlendMode)] _DstBlend ("Dst Blend", Float) = 0
-		[Enum(Off, 0, On, 1)] _PREMULTIPLY_ALPHA("PREMULTIPLY ALPHA", Float) = 0
-		[Enum(Off, 0, On, 1)] _ZWrite ("Z Write", Float) = 1
-			
+		[HideInInspector][Enum(UnityEngine.Rendering.BlendMode)] _SrcBlend("Src Blend", Float) = 1
+		[HideInInspector][Enum(UnityEngine.Rendering.BlendMode)] _DstBlend("Dst Blend", Float) = 0
+		[HideInInspector][Enum(Off, 0, On, 1)] _ZWrite("Z Write", Float) = 1
+
 		[HideInInspector] _MainTex("Lightmap Texture", 2D) = "white" {}
 		[HideInInspector] _Color("Lightmap Color", Color) = (0.5, 0.5, 0.5, 1.0)
 	}
 	
+	/* Magic Byte Standard Surface:
+	float3 position;
+	float3 normal;
+	float3 interpolatedNormal;
+	float3 viewDirection;
+	float subsurface;
+	float4 tangent;
+	float3 binormal;
+	float3 color;
+	float3 subSurfaceColor;
+	float alpha;
+	float metallic;
+	float smoothness;
+	float occlusion;
+	float ior;
+	float dither;
+	float anisotropic;
+	float sheen;
+	float sheenTint;
+	float depth;
+	float transmission;
+	float clearCoatRoughness;
+	float scatteringScale;
+	*/
+
 	SubShader {
 		HLSLINCLUDE
 		#include "../../ShaderLibrary/Common.hlsl"
 		#include "../LitInput.hlsl"
 		ENDHLSL
+
 		Pass {
 			Tags {
 				"LightMode" = "Meta"
@@ -66,6 +106,7 @@
 			#include "../MetaPass.hlsl"
 			ENDHLSL
 		}
+
 		Pass {
 			Tags {
 				"LightMode" = "MBLit"
@@ -88,7 +129,7 @@
 			#pragma multi_compile_instancing
 			#pragma vertex LitPassVertex
 			#pragma fragment LitPassFragment
-			#include "ClothPass.hlsl"
+			#include "ClothPass.hlsl" //Enter the name of your Pass file
 			ENDHLSL
 		}
 
@@ -110,5 +151,7 @@
 			ENDHLSL
 		}
 
+
 	}
+		CustomEditor "MagicByteShaderEditor" //Add an editor to the shader
 }

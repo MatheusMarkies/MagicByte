@@ -4,9 +4,9 @@ using UnityEngine;
 
 public class CreateVoronoiTexture : MonoBehaviour
 {
-    public Texture2D texture2D;
+    Texture2D texture2D;
     public ComputeShader shader;
-    public GameObject show;
+
     void Start()
     {
         RenderTexture tex = new RenderTexture(1024, 1024, 24);
@@ -16,7 +16,7 @@ public class CreateVoronoiTexture : MonoBehaviour
         shader.SetTexture(shader.FindKernel("CSMain"), "Result", tex);
         shader.Dispatch(shader.FindKernel("CSMain"), tex.width, tex.height, 1);
         texture2D = RenderTexturetoTexture2D(tex);
-        show.GetComponent<MeshRenderer>().material.SetTexture("_BaseMap", texture2D);
+        gameObject.GetComponent<MeshRenderer>().material.SetTexture("_Voronoi", texture2D);
     }
     Texture2D RenderTexturetoTexture2D(RenderTexture rTex)
     {

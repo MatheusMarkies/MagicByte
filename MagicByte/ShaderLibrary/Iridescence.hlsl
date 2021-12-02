@@ -22,10 +22,10 @@ float3 Iridescence(Surface surface, Light light, float tile) {
 	float NoL = dot(surface.normal, light.direction);
 	float VoL = dot(surface.viewDirection, light.direction);
 	float NoV = dot(surface.viewDirection, surface.normal);
-	float fresnelF = Fresnel(surface.fresnelStrength, surface.normal, surface.viewDirection);
+	float fresnelF = Fresnel(surface.ior, surface.normal, surface.viewDirection);
 
 	float ss = 401 + (250 * snoise(float3(VoL, NoV,0)));
-	float3 rr = RodriguesRotation(lerp(NoV, fresnelF, surface.fresnelStrength) * tile, ZucconiGradientFunction(ss));
+	float3 rr = RodriguesRotation(lerp(NoV, fresnelF, surface.ior) * tile, ZucconiGradientFunction(ss));
 
 	float3 I = rr;
 

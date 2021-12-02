@@ -35,7 +35,7 @@ SAMPLER(sampler_OcclusionMap);
 
 sampler2D _HeightMap;
 
-UNITY_INSTANCING_BUFFER_START(UnityPerMaterial)
+UNITY_INSTANCING_BUFFER_START(Props)
 	UNITY_DEFINE_INSTANCED_PROP(float4, _BaseMap_ST)//
 	UNITY_DEFINE_INSTANCED_PROP(float4, _DetailMap_ST)//
 	UNITY_DEFINE_INSTANCED_PROP(float4, _BaseColor)//
@@ -60,17 +60,20 @@ UNITY_INSTANCING_BUFFER_START(UnityPerMaterial)
 	UNITY_DEFINE_INSTANCED_PROP(float4, _EmissionColor)//
 	UNITY_DEFINE_INSTANCED_PROP(float4, _NormalMap_ST)//
 	UNITY_DEFINE_INSTANCED_PROP(float, _NormalStrength)//
+	UNITY_DEFINE_INSTANCED_PROP(float4, _TillingNormal)//
 	UNITY_DEFINE_INSTANCED_PROP(float, _IOR)//
+	UNITY_DEFINE_INSTANCED_PROP(float, _ScatteringScale)//
 	UNITY_DEFINE_INSTANCED_PROP(float, _UseClearCoat)//
 	UNITY_DEFINE_INSTANCED_PROP(float, _ClearCoatRoughness)//
-UNITY_INSTANCING_BUFFER_END(UnityPerMaterial)
+	UNITY_DEFINE_INSTANCED_PROP(float, _ClearCoat)//
+UNITY_INSTANCING_BUFFER_END(Props)
 
 float GrayScale(float3 map) {
 	return (map.r + map.g + map.b) / 3;
 }
 
 float3 GammaToLinear(float3 color) {
-	return float3(pow(color.r, 2.2f), pow(color.g, 2.2f), pow(color.b, 2.2f));
+	return float3(pow(color.r, _Gamma), pow(color.g, _Gamma), pow(color.b, _Gamma));
 }
 
 float2 TransformBaseUV (float2 baseUV) {
@@ -89,7 +92,7 @@ float4 getDetail (float2 detailUV) {
 }
 
 float3 getNormal (float2 baseUV, float2 detailUV = 0.0) {
-	float4 map = SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, baseUV);
+	float4 map = SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, baseUV * UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _TillingNormal));
 	float scale = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _NormalStrength);
 	float3 normal = DecodeNormal(map, scale);
 
@@ -103,6 +106,14 @@ float3 getNormal (float2 baseUV, float2 detailUV = 0.0) {
 
 float3 getSubSurfaceColor() {
 	return GammaToLinear(UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _SubSurfaceColor));
+}
+
+float3 getScatteringScale() {
+	return UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _ScatteringScale);
+}
+
+float4 getBaseColor() {
+	return UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _BaseColor);
 }
 
 float4 getBase (float2 baseUV, float2 detailUV = 0.0) {
@@ -183,6 +194,11 @@ bool UseClearCoat() {
 		return true;
 	return false;
 }
+
+float getClearCoat() {
+	return UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _ClearCoat);
+}
+
 float getClearCoatRoughness () {
 	return UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _ClearCoatRoughness);
 }
@@ -231,6 +247,10 @@ Surface getSurface(float2 baseUV,float3 positionWS, float4 positionCS,float3 nor
 	surface.sheen = getSheen();
 	surface.sheenTint = getSheenTint();
 	surface.subsurface = getSubSurface();
+
+	surface.clearCoatRoughness = getClearCoatRoughness();
+
+	surface.scatteringScale = getScatteringScale();
 
 	surface.occlusion = getOcclusion(baseUV);
 	surface.depth = -TransformWorldToView(positionWS).z;

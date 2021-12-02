@@ -15,10 +15,11 @@ MonoBehaviour:
   DynamicBatching: 1
   GPUInstancing: 1
   SRPBatcher: 1
+  Gamma: 2.2
   realtimeShadows:
-    maxDistance: 461.2
+    maxDistance: 659.67
     distanceFade: 1
-    scatteringBorders: 0
+    scatteringBorders: 1.5
     directional:
       ShadowMapSize: 16384
       filter: 3
