@@ -84,7 +84,7 @@ Unity 2019.4.20f1 or newer.
 
 Coming soon: detailed documentation
 
-_For more examples, please refer to the [Documentation](https://example.com)_
+For more examples, please refer to the [Documentation](https://docs.google.com/document/d/e/2PACX-1vSv839toX0Uj-Hx09C1fzBFKaWJ7UrUgFuuUCpXvUxRyldLRDZkXSqWyQAbyCqeye5Ml5y4kK6GaxEp/pub)
 
 
 <!-- CONTACT -->
