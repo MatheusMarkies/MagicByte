@@ -159,20 +159,20 @@ namespace MagicByte
     class LensFlare : Effect
     {
         [SerializeField, Range(0, 8)]
-        private float Threshold = 0.17f;
+        private float Threshold = 2.5f;
         [SerializeField, Range(0, 6)]
-        private float GhostIntensity = 1;
+        private float GhostIntensity = 0.02f;
         [SerializeField, Min(0.0f)]
-        public float HaloIntensity = 1.0f;
+        public float HaloIntensity = 0.12f;
         [SerializeField, Range(0f, 1f)]
         public float DirtyIntensity = 1.0f;
         [SerializeField, Range(-1f, 1f)]
-        public float HaloWidth = 0.5f;
+        public float HaloWidth = -0.49f;
         [SerializeField, Min(0.0f)]
-        public float Delta = 1.0f;
+        public float Delta = 2.0f;
 
         [SerializeField, Min(0.0f)]
-        public float Distortion = 1.0f;
+        public float Distortion =  6.5f;
 
         [SerializeField]
         public Texture StarBrush;
@@ -215,6 +215,7 @@ namespace MagicByte
             if (this.effectMaterial)
             {
                 buffer.SetGlobalTexture("_OldPostFXSource", fromID);
+                buffer.Blit(Shader.PropertyToID("_CameraFrameBuffer"), fromID);
                 postProcessingStack.drawingEffect(fromID, toID, this.effectMaterial, 0, camera);
 
                 buffer.GetTemporaryRT(toID + 1, camera.pixelWidth / 1, camera.pixelHeight / 1, 0, FilterMode.Bilinear, RenderTextureFormat.DefaultHDR);
@@ -249,7 +250,7 @@ namespace MagicByte
     class ChromaticAberration : Effect
     {
         [SerializeField, Range(0, 10)]
-        private float Distortion = 0.1f;
+        private float Distortion = 2.0f;
 
         public override void preProcessing()
         {
@@ -335,13 +336,13 @@ namespace MagicByte
         [SerializeField, Range(2,16)]
         int Levels = 16;
         [Min(0f)]
-        public float Threshold;
+        public float Threshold = 0.5f;
         [Range(0f, 1f)]
-        public float ThresholdKnee;
+        public float ThresholdKnee = 1.0f;
         [Min(0.1f)]
-        public float Intensity;
+        public float Intensity = 0.5f;
         [Range(0f, 1f)]
-        public float Scattering;
+        public float Scattering = 1.0f;
 
         public override void preProcessing()
         {

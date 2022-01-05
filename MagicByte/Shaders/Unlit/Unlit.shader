@@ -29,7 +29,7 @@
 			ENDHLSL
 		}
 
-		//Pass {
+  //       Pass {
 		//	Tags {
 		//		"LightMode" = "ShadowCaster"
 		//	}
@@ -40,26 +40,27 @@
 		//	#pragma target 3.5
 		//	#pragma shader_feature _ _SHADOWS_CLIP _SHADOWS_DITHER
 		//	#pragma multi_compile_instancing
+		//	#pragma multi_compile _ LOD_FADE_CROSSFADE
 		//	#pragma vertex ShadowCasterPassVertex
 		//	#pragma fragment ShadowCasterPassFragment
-		//	#include "ShadowCasterPass.hlsl"
+		//	#include "../ShadowCasterPass.hlsl"
 		//	ENDHLSL
 		//}
 
-	/*	Pass {
-			Tags {
-				"LightMode" = "Meta"
-			}
+	//	Pass {
+	//		Tags {
+	//			"LightMode" = "Meta"
+	//		}
 
-			Cull Off
+	//		Cull Off
 
-			HLSLPROGRAM
-			#pragma target 3.5
-			#pragma vertex MetaPassVertex
-			#pragma fragment MetaPassFragment
-			#include "MetaPass.hlsl"
-			ENDHLSL
-		}*/
+	//		HLSLPROGRAM
+	//		#pragma target 3.5
+	//		#pragma vertex MetaPassVertex
+	//		#pragma fragment MetaPassFragment
+	//		#include "../MetaPass.hlsl"
+	//		ENDHLSL
+	//	}
 	}
 
 }

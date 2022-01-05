@@ -13,7 +13,7 @@ float Noise(float3 x)
     float3 f = frac(x);
 
     f = f * f * (3.0 - 2.0 * f);
-    float n = p.x + p.y * 57.0 + 113.0 * p.z;
+    float n = p.x + p.y * 47.0 + 113.0 * p.z;
 
     return lerp(lerp(lerp(hash(n + 0.0), hash(n + 1.0), f.x),
         lerp(hash(n + 57.0), hash(n + 58.0), f.x), f.y),
@@ -73,4 +73,58 @@ float4 GrayscaleToNormal(float3 pos) {
 	float3 vb = normalize(float3(size.yx, s12 - s10));
 	return float4(cross(va, vb), s11);
 }
+
+float hash(float2 p)
+{
+	float h = dot(p, float2(127.1, 311.7));
+
+	return -1.0 + 2.0 * frac(sin(h) * 43758.5453123);
+}
+
+float RadialNoiseGenerator(float2 p)
+{
+	float2 i = floor(p);
+	float2 f = frac(p);
+
+	float2 u = f * f * (3.0 - 1.0 * f);
+
+	return lerp(lerp(hash(i + float2(0.0, 0.0)),
+		hash(i + float2(1.0, 0.0)), u.x),
+		lerp(hash(i + float2(0.0, 1.0)),
+			hash(i + float2(1.0, 1.0)), u.x), u.y);
+}
+
+float2x2 m = float2x2(0.8, 0.6, -0.6, 0.8);
+
+float Radial(float2 p) {
+	float f = 0.0;
+	float2 p1 = p;
+	f += 0.5000 * RadialNoiseGenerator(p1); 
+	p1 = mul(float2(2.02, 2.02), m);
+	f += 0.2500 * RadialNoiseGenerator(p1);
+	p1 = mul(float2(2.03, 2.03), m);
+	f += 0.1250 * RadialNoiseGenerator(p1);
+	p1 = mul(float2(2.01, 2.01), m);
+	f += 0.0625 * RadialNoiseGenerator(p1);
+	p1 = mul(float2(2.04, 2.04), m);
+	f /= 3.9375;
+	return f;
+}
+
+float3 RadialNoise(float2 baseUV)
+{
+	float2 p = -1.0 + 2.0 * baseUV;
+
+	float r1 = dot(p, p);
+	float a1 = atan2(p.y, p.x);
+	float f1 = Radial(float2(r1, 200.0 * a1));
+
+	float w = length(float2(0.5, 0.5) - baseUV);
+	f1 *= 1.3;
+	f1 = saturate(f1);
+	f1 *= w;
+
+	return float3(f1, f1, f1);
+}
+
 #endif

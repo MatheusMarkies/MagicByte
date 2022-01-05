@@ -14,6 +14,9 @@ namespace MagicByte
 
 		Decal dacals;
 
+		Shader depthShader = Shader.Find("Hidden/DepthTexture");
+		float depthLevel = 4;
+
 		int _GBuffer0 = Shader.PropertyToID("_CameraGBufferTexture0");
 		int _GBuffer1 = Shader.PropertyToID("_CameraGBufferTexture1");
 		int _GBuffer2 = Shader.PropertyToID("_CameraGBufferTexture2");
@@ -38,6 +41,8 @@ namespace MagicByte
 			this.camera = camera;
 
 			buffer.SetGlobalFloat("_Gamma", Gamma);
+			buffer.SetGlobalFloat("_FarPlane", camera.farClipPlane);
+			buffer.SetGlobalFloat("_NearPlane", camera.nearClipPlane);
 
 			camera.renderingPath = RenderingPath.DeferredShading;
 			camera.allowMSAA = false;
@@ -47,17 +52,17 @@ namespace MagicByte
 
 			PrepareBuffer();
 			PrepareForSceneWindow();
-			if (!Cull(shadowSettings.maxDistance))
-			{
-				return;
-			}
+
+			if (!Cull(shadowSettings.maxDistance)){ return; }
 
 			buffer.BeginSample(bufferName);
 			ExecuteBuffer();
 			lighting.Setup(context, cullingResults, shadowSettings);
+
 			buffer.EndSample(bufferName);
 			
 			Setup();
+
 			DrawVisibleGeometry(useDynamicBatching, useGPUInstancing);
 			DrawUnsupportedShaders();
 
@@ -86,7 +91,7 @@ namespace MagicByte
             }
 
             DrawingGBuffers();
-			
+
 			DrawGizmos();
 			Cleanup();
 			Submit();
@@ -95,6 +100,7 @@ namespace MagicByte
 		void Cleanup()
 		{
 			lighting.Cleanup();
+
 			buffer.ReleaseTemporaryRT(frameBufferId);
 
 			buffer.ReleaseTemporaryRT(_GBuffer0);
@@ -131,7 +137,7 @@ namespace MagicByte
                 buffer.SetRenderTarget(frameBufferId, RenderBufferLoadAction.Load, RenderBufferStoreAction.StoreAndResolve);//Renderizar efeitos
             }
 
-            buffer.ClearRenderTarget(flags <= CameraClearFlags.Depth, flags == CameraClearFlags.Color, flags == CameraClearFlags.Color ? camera.backgroundColor.linear : Color.clear);
+			buffer.ClearRenderTarget(flags <= CameraClearFlags.Depth, flags == CameraClearFlags.Color, flags == CameraClearFlags.Color ? camera.backgroundColor.linear : Color.clear);
 
 			buffer.BeginSample(SampleName);
 			ExecuteBuffer();
@@ -201,17 +207,17 @@ namespace MagicByte
 
 			buffer.GetTemporaryRT(_GBuffer3, camera.pixelWidth, camera.pixelHeight);
 			buffer.Blit(BuiltinRenderTextureType.GBuffer3, _GBuffer3);
-
+			
 			RenderTargetIdentifier[] gbuffersRenderTarget = { BuiltinRenderTextureType.GBuffer0,
 										   BuiltinRenderTextureType.GBuffer1,
 										   BuiltinRenderTextureType.GBuffer2,
 										   BuiltinRenderTextureType.GBuffer3};
 			buffer.SetRenderTarget(gbuffersRenderTarget, BuiltinRenderTextureType.CameraTarget);
 
-			buffer.SetGlobalTexture("_CameraGBufferTexture0", _GBuffer0);
-			buffer.SetGlobalTexture("_CameraGBufferTexture1", _GBuffer1);
-			buffer.SetGlobalTexture("_CameraGBufferTexture2", _GBuffer2);
-			buffer.SetGlobalTexture("_CameraGBufferTexture3", _GBuffer3);
+			buffer.SetGlobalTexture("_GBufferTexture0", _GBuffer0);
+			buffer.SetGlobalTexture("_GBufferTexture1", _GBuffer1);
+			buffer.SetGlobalTexture("_GBufferTexture2", _GBuffer2);
+			buffer.SetGlobalTexture("_GBufferTexture3", _GBuffer3);
 
 			buffer.EndSample("Drawing GBuffers");
 		}

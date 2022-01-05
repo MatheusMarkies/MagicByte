@@ -25,8 +25,8 @@ RenderSettings:
   m_AmbientGroundColor: {r: 0.047, g: 0.043, b: 0.035, a: 1}
   m_AmbientIntensity: 1
   m_AmbientMode: 0
-  m_SubtractiveShadowColor: {r: 0.42, g: 0.478, b: 0.627, a: 1}
-  m_SkyboxMaterial: {fileID: 10304, guid: 0000000000000000f000000000000000, type: 0}
+  m_SubtractiveShadowColor: {r: 0.38808292, g: 0.43043748, b: 0.5377358, a: 1}
+  m_SkyboxMaterial: {fileID: 2100000, guid: 78fa81bcac6058e41b9bffd0cb1f1b79, type: 2}
   m_HaloStrength: 0.5
   m_FlareStrength: 1
   m_FlareFadeSpeed: 3
@@ -37,8 +37,8 @@ RenderSettings:
   m_ReflectionBounces: 1
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
-  m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.44657874, g: 0.49641258, b: 0.574817, a: 1}
+  m_Sun: {fileID: 1143448123}
+  m_IndirectSpecularColor: {r: 0.68569493, g: 0.67332804, b: 0.48465633, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -346,7 +346,7 @@ MonoBehaviour:
   ImageScale: 1
   directionalLight: {fileID: 1143448123}
   samplesPerPixel: 10
-  additiveShader: {fileID: 4800000, guid: d472f54ee50c7ce46af8f17114369b8a, type: 3}
+  additiveShader: {fileID: 4800000, guid: 25887ad0cf745fa4d8bb7eb14b9b41fc, type: 3}
   additiveMaterial: {fileID: 1637927437}
 --- !u!1001 &2059575765
 PrefabInstance:
@@ -402,6 +402,10 @@ PrefabInstance:
     - target: {fileID: 400000, guid: b602673517352e54eb23c7f24ab5803b, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2300000, guid: b602673517352e54eb23c7f24ab5803b, type: 3}
+      propertyPath: m_RayTracingMode
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 2300000, guid: b602673517352e54eb23c7f24ab5803b, type: 3}
       propertyPath: m_Materials.Array.data[0]

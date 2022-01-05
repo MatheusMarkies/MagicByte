@@ -11,18 +11,14 @@
 #include "../../ShaderLibrary/ClearCoat.hlsl"
 #include "../../ShaderLibrary/ColorFunction.hlsl"
 
-
-UNITY_INSTANCING_BUFFER_START(UnityPerMaterial)
-UNITY_DEFINE_INSTANCED_PROP(float, _ClearCoatFresnel)//
-UNITY_INSTANCING_BUFFER_END(UnityPerMaterial)
-
 struct Attributes {
 	float3 positionOS : POSITION;
 	float3 normalOS : NORMAL;
 	float4 tangentOS : TANGENT;
+	float4 color : COLOR;
 	float2 baseUV : TEXCOORD0;
 	GI_ATTRIBUTE_DATA
-	UNITY_VERTEX_INPUT_INSTANCE_ID
+		UNITY_VERTEX_INPUT_INSTANCE_ID
 };
 
 struct Varyings {
@@ -32,8 +28,9 @@ struct Varyings {
 	float4 tangentWS : VAR_TANGENT;
 	float2 baseUV : VAR_BASE_UV;
 	float2 detailUV : VAR_DETAIL_UV;
+	float4 color : COLOR;
 	GI_VARYINGS_DATA
-	UNITY_VERTEX_INPUT_INSTANCE_ID
+		UNITY_VERTEX_INPUT_INSTANCE_ID
 };
 
 Varyings LitPassVertex (Attributes input) {
@@ -48,6 +45,7 @@ Varyings LitPassVertex (Attributes input) {
 		input.positionOS.y += getHeight(input.baseUV).y;
 	}
 
+	output.color = input.color;
 	output.positionWS = TransformObjectToWorld(input.positionOS);
 	output.positionCS = TransformWorldToHClip(output.positionWS);
 	output.normalWS = TransformObjectToWorldNormal(input.normalOS);
@@ -62,10 +60,7 @@ Varyings LitPassVertex (Attributes input) {
 /*Lighting*/
 float3 mergeLighting(Surface surface, BRDF brdf, Light light) {
 	//To edit the BRDF template used just change the field below : *DirectBSDF*
-	float3 bsdf = DirectBSDF(surface, brdf, light, surface.ior);
-	light.direction = (light.direction + 2 * surface.normal * (-light.direction * surface.normal)) / 1.5f;
-	float3 btdf = DirectBSDF(surface, brdf, light, surface.ior);
-	return IncomingLight(surface, light) * bsdf * btdf;
+	return IncomingLight(surface, light) * DirectBSDF(surface, brdf, light, surface.ior);
 }
 
 float3 getDirectLighting(Surface surfaceWS, BRDF brdf, GI gi) {
@@ -87,16 +82,40 @@ float3 getDirectLighting(Surface surfaceWS, BRDF brdf, GI gi) {
 }
 /*End Lighting*/
 
-float circleShape(float2 position, float radius) {
-	return step(radius, length(position));
-}
+TEXTURE2D(_RedMap);
+SAMPLER(sampler_RedMap);
+
+TEXTURE2D(_GreenMap);
+SAMPLER(sampler_GreenMap);
+
+TEXTURE2D(_BlueMap);
+SAMPLER(sampler_BlueMap);
+
+TEXTURE2D(_SmoothnessNormal);
+SAMPLER(sampler_SmoothnessNormal);
 
 float4 LitPassFragment(Varyings input) : SV_TARGET{
 	UNITY_SETUP_INSTANCE_ID(input);
 
     Surface surface = getSurface(input.baseUV, input.positionWS, input.positionCS, input.normalWS, input.tangentWS);
-	surface.metallic = 1;
-	surface.smoothness = 0.89;
+
+	surface.color = lerp(getBase(input.baseUV),SAMPLE_TEXTURE2D(_RedMap, sampler_RedMap, input.baseUV).rgb, input.color.r) *
+		lerp(getBase(input.baseUV), SAMPLE_TEXTURE2D(_GreenMap, sampler_GreenMap, input.baseUV).rgb, input.color.g) *
+		lerp(getBase(input.baseUV), SAMPLE_TEXTURE2D(_BlueMap, sampler_BlueMap, input.baseUV).rgb, input.color.b);
+
+	surface.metallic = 1.0f;
+	surface.smoothness = 1 - input.color.a;
+
+	float _SmoothnessNMapScale = max(0, min(1, (1 - input.color.a)));
+	float4 _SmoothnessNMap = SAMPLE_TEXTURE2D(_SmoothnessNormal, sampler_SmoothnessNormal, input.baseUV);
+	float3 _SmoothnessNormal = DecodeNormal(_SmoothnessNMap, _SmoothnessNMapScale);
+	
+	float3 normal = getNormal(input.baseUV);
+
+	if (input.color.a != 1)
+	normal = BlendNormalRNM(normal, _SmoothnessNormal);
+	
+	surface.normal = NormalTangentToWorld(normal, input.normalWS, input.tangentWS);
 
 	#if defined(_CLIPPING)
 		clip(surface.alpha - max(getCutoff(), surface.alpha));
@@ -112,16 +131,13 @@ float4 LitPassFragment(Varyings input) : SV_TARGET{
 	GI gi = getGI(GI_FRAGMENT_DATA(input), surface, brdf);
 	/*End GI*/
 
-	float3 color = surface.color;
-	color += getDirectLighting(surface, brdf, gi);
+	float3 color = getDirectLighting(surface, brdf, gi);
+	color += getLighting(surface, brdf, gi);
+	
+	if (UseClearCoat() == 1)
+		color += ClearCoat(surface.clearCoatRoughness, surface, gi, brdf) * getClearCoat();
 
-	float2 irisCenter = input.baseUV * 2.0 - 1.0f;
-	color = lerp(color, RadialNoise(input.baseUV), (1 - circleShape(irisCenter, 0.3f)));
-	color *= circleShape(irisCenter, 0.3f/5);
-
-	color += ClearCoat(surface.clearCoatRoughness, surface, gi, brdf) * getClearCoat() * Fresnel(1, surface.normal, surface.viewDirection / (UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _ClearCoatFresnel) * 3.0f));
-
-	return float4(color, 1);
+	return float4(color , surface.alpha);
 }
 
 #endif

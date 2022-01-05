@@ -74,7 +74,6 @@ namespace MagicByte
 				buffer.GetTemporaryRT(toId, camera.pixelWidth, camera.pixelHeight, 0, FilterMode.Bilinear, RenderTextureFormat.DefaultHDR);
 
 				effects[i].renderPasses(this, buffer, fromId, toId, camera);
-
 				fromId = effects[i].ToID;
 				toId += effects[i].passes;
 			}

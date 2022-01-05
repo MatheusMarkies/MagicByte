@@ -65,10 +65,18 @@ float3 getDirectLighting(Surface surfaceWS, BRDF brdf, GI gi) {
 	for (int i = 0; i < GetDirectionalLightCount(); i++) {
 		Light light = GetDirectionalLight(i, surfaceWS, shadowData);
 		color += mergeLighting(surfaceWS, brdf, light);
+
+		float3 lightDir = light.direction + surfaceWS.normal;
+		float3 translucency = (pow(saturate(dot(surfaceWS.viewDirection, -lightDir)), 1) * surfaceWS.scatteringScale + gi.diffuse * 1) * light.attenuation;
+		color += surfaceWS.color * light.color * translucency * (1 - surfaceWS.metallic);
 	}
 	for (int j = 0; j < GetOtherLightCount(); j++) {
 		Light light = GetOtherLight(j, surfaceWS, shadowData);
 		color += mergeLighting(surfaceWS, brdf, light);
+
+		float3 lightDir = light.direction + surfaceWS.normal;
+		float3 translucency = (pow(saturate(dot(surfaceWS.viewDirection, -lightDir)), 1) * surfaceWS.scatteringScale + gi.diffuse * 1) * light.attenuation;
+		color += surfaceWS.color * light.color * translucency * (1 - surfaceWS.metallic);
 	}
 
 	return color;

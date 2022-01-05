@@ -11,9 +11,14 @@
 #include "../../ShaderLibrary/ClearCoat.hlsl"
 #include "../../ShaderLibrary/ColorFunction.hlsl"
 
+TEXTURE2D(_FlakesMap);
+SAMPLER(sampler_FlakesMap);
 
 UNITY_INSTANCING_BUFFER_START(UnityPerMaterial)
-UNITY_DEFINE_INSTANCED_PROP(float, _ClearCoatFresnel)//
+UNITY_DEFINE_INSTANCED_PROP(float, _FresnelPower)
+UNITY_DEFINE_INSTANCED_PROP(float4, _FresnelColor)
+UNITY_DEFINE_INSTANCED_PROP(float, _FlakesStrength)
+UNITY_DEFINE_INSTANCED_PROP(float4, _TillingFlakes)
 UNITY_INSTANCING_BUFFER_END(UnityPerMaterial)
 
 struct Attributes {
@@ -62,10 +67,7 @@ Varyings LitPassVertex (Attributes input) {
 /*Lighting*/
 float3 mergeLighting(Surface surface, BRDF brdf, Light light) {
 	//To edit the BRDF template used just change the field below : *DirectBSDF*
-	float3 bsdf = DirectBSDF(surface, brdf, light, surface.ior);
-	light.direction = (light.direction + 2 * surface.normal * (-light.direction * surface.normal)) / 1.5f;
-	float3 btdf = DirectBSDF(surface, brdf, light, surface.ior);
-	return IncomingLight(surface, light) * bsdf * btdf;
+	return IncomingLight(surface, light) * DirectBSDF(surface, brdf, light, surface.ior);
 }
 
 float3 getDirectLighting(Surface surfaceWS, BRDF brdf, GI gi) {
@@ -87,16 +89,24 @@ float3 getDirectLighting(Surface surfaceWS, BRDF brdf, GI gi) {
 }
 /*End Lighting*/
 
-float circleShape(float2 position, float radius) {
-	return step(radius, length(position));
-}
-
 float4 LitPassFragment(Varyings input) : SV_TARGET{
 	UNITY_SETUP_INSTANCE_ID(input);
 
     Surface surface = getSurface(input.baseUV, input.positionWS, input.positionCS, input.normalWS, input.tangentWS);
-	surface.metallic = 1;
-	surface.smoothness = 0.89;
+
+	float4 map = SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, input.baseUV * UNITY_ACCESS_INSTANCED_PROP(Props, _TillingNormal));
+	float scale = UNITY_ACCESS_INSTANCED_PROP(Props, _NormalStrength);
+	float3 normal = DecodeNormal(map, scale);
+
+	map = SAMPLE_TEXTURE2D(_FlakesMap, sampler_FlakesMap, input.baseUV * UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _TillingFlakes));
+	scale = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _FlakesStrength);
+	float3 second = DecodeNormal(map, scale);
+
+	float3 normalMap = BlendNormalRNM(normal, second);
+
+	surface.normal = NormalTangentToWorld(normalMap, input.normalWS, input.tangentWS);
+	surface.interpolatedNormal = input.normalWS;
+	surface.binormal = cross(NormalTangentToWorld(surface.normal, input.normalWS, input.tangentWS), input.tangentWS.xyz) * input.tangentWS.w;
 
 	#if defined(_CLIPPING)
 		clip(surface.alpha - max(getCutoff(), surface.alpha));
@@ -112,16 +122,16 @@ float4 LitPassFragment(Varyings input) : SV_TARGET{
 	GI gi = getGI(GI_FRAGMENT_DATA(input), surface, brdf);
 	/*End GI*/
 
-	float3 color = surface.color;
-	color += getDirectLighting(surface, brdf, gi);
+	float3 color = getDirectLighting(surface, brdf, gi);
+	color += getLighting(surface, brdf, gi);
+	
+	float fresnel = 1.0 - max(dot(normalize(surface.viewDirection.xyz), surface.normal), 0.0);
+	fresnel = pow(fresnel, UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _FresnelPower));
+	color = lerp(color, UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _FresnelColor).xyz, fresnel);
 
-	float2 irisCenter = input.baseUV * 2.0 - 1.0f;
-	color = lerp(color, RadialNoise(input.baseUV), (1 - circleShape(irisCenter, 0.3f)));
-	color *= circleShape(irisCenter, 0.3f/5);
+	color += ClearCoat(surface.clearCoatRoughness, surface, gi, brdf) * getClearCoat();
 
-	color += ClearCoat(surface.clearCoatRoughness, surface, gi, brdf) * getClearCoat() * Fresnel(1, surface.normal, surface.viewDirection / (UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _ClearCoatFresnel) * 3.0f));
-
-	return float4(color, 1);
+	return float4(color , surface.alpha);
 }
 
 #endif

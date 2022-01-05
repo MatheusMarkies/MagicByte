@@ -28,6 +28,9 @@ namespace MagicByte
 
 		protected override void Render(ScriptableRenderContext context, Camera[] cameras)
 		{
+			GraphicsSettings.lightsUseLinearIntensity = (QualitySettings.activeColorSpace == ColorSpace.Linear);
+			GraphicsSettings.lightsUseColorTemperature = true;
+
 			foreach (Camera camera in cameras)
 			{
 				renderer.Render(context, camera, Gamma, DynamicBatching, GPUInstancing, shadowSettings);

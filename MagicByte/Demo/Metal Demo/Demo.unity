@@ -123,6 +123,29 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!21 &9413518
+Material:
+  serializedVersion: 6
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Hidden/Bloom
+  m_Shader: {fileID: 4800000, guid: b1657e2eff3d46346ab04b5f8a342a93, type: 3}
+  m_ShaderKeywords: 
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs: []
+    m_Ints: []
+    m_Floats: []
+    m_Colors: []
+  m_BuildTextureStacks: []
 --- !u!1 &24253852
 GameObject:
   m_ObjectHideFlags: 0
@@ -240,15 +263,15 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 24253852}
   m_Mesh: {fileID: -2110527070518962502, guid: 80776968980bfcf45a15c90f1a7fe854, type: 3}
---- !u!21 &46983968
+--- !u!21 &366291244
 Material:
   serializedVersion: 6
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Hidden/ChromaticAberration
-  m_Shader: {fileID: 4800000, guid: d4f6c00a6f9d2b44bad08e80a96291a0, type: 3}
+  m_Name: Hidden/ScreenSpaceLensFlare
+  m_Shader: {fileID: 4800000, guid: 17b725e011bc84a40985313fac29aec9, type: 3}
   m_ShaderKeywords: 
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
@@ -272,29 +295,6 @@ Material:
   m_PrefabAsset: {fileID: 0}
   m_Name: Hidden/LightStreak
   m_Shader: {fileID: 4800000, guid: 754d4b2b045162a4682585b4b72a6664, type: 3}
-  m_ShaderKeywords: 
-  m_LightmapFlags: 4
-  m_EnableInstancingVariants: 0
-  m_DoubleSidedGI: 0
-  m_CustomRenderQueue: -1
-  stringTagMap: {}
-  disabledShaderPasses: []
-  m_SavedProperties:
-    serializedVersion: 3
-    m_TexEnvs: []
-    m_Ints: []
-    m_Floats: []
-    m_Colors: []
-  m_BuildTextureStacks: []
---- !u!21 &411091219
-Material:
-  serializedVersion: 6
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: Hidden/Bloom
-  m_Shader: {fileID: 4800000, guid: b1657e2eff3d46346ab04b5f8a342a93, type: 3}
   m_ShaderKeywords: 
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
@@ -597,40 +597,41 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Tonemapping: 1
   tonemapping:
-    effectMaterial: {fileID: 901237467}
+    effectMaterial: {fileID: 1237938616}
     passes: 1
-    ToID: 573
+    ToID: 659
     toneMode: 6
     Saturation: 1.09
     Vibrance: 1
     HUE: 0
-    Exposure: 0.72
+    Exposure: 1.1
     Contrast: 1
-    Gamma: 1.11
+    Gamma: 1.28
     Temperature: 0
     Tint: 0
     RedMultiply: 1
     GreenMultiply: 1
     BlueMultiply: 1
-  LensFlare: 1
+  LensFlare: 0
   lensflare:
-    effectMaterial: {fileID: 877797415}
+    effectMaterial: {fileID: 366291244}
     passes: 7
-    ToID: 580
-    Threshold: 0.6
-    GhostIntensity: 0.6
-    HaloIntensity: 1.53
+    ToID: 665
+    Threshold: 3.8
+    GhostIntensity: 0.01
+    HaloIntensity: 0.48
     DirtyIntensity: 0.58
     HaloWidth: -0.06
     Delta: 1
+    Distortion: 3.29
     StarBrush: {fileID: 2800000, guid: a8671616f6700af488d8688e3acefc5e, type: 3}
     LensDirty: {fileID: 2800000, guid: 0c45df5605cdd1342897f2206844846c, type: 3}
   ChromaticAberration: 1
   chromaticAberration:
-    effectMaterial: {fileID: 46983968}
+    effectMaterial: {fileID: 1169373763}
     passes: 1
-    ToID: 581
-    Distortion: 1.5
+    ToID: 659
+    Distortion: 1.6
   LightStreak: 0
   lightStreak:
     effectMaterial: {fileID: 410098363}
@@ -641,10 +642,14 @@ MonoBehaviour:
     Offset: 0
   Bloom: 0
   bloom:
-    effectMaterial: {fileID: 411091219}
+    effectMaterial: {fileID: 9413518}
     passes: 1
-    ToID: 615
-    Levels: 2
+    ToID: 659
+    Levels: 16
+    Threshold: 0.32
+    ThresholdKnee: 0
+    Intensity: 1.09
+    Scattering: 0.95
 --- !u!1 &843603308
 GameObject:
   m_ObjectHideFlags: 0
@@ -762,52 +767,6 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 843603308}
   m_Mesh: {fileID: -2110527070518962502, guid: 80776968980bfcf45a15c90f1a7fe854, type: 3}
---- !u!21 &877797415
-Material:
-  serializedVersion: 6
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: Hidden/ScreenSpaceLensFlare
-  m_Shader: {fileID: 4800000, guid: 17b725e011bc84a40985313fac29aec9, type: 3}
-  m_ShaderKeywords: 
-  m_LightmapFlags: 4
-  m_EnableInstancingVariants: 0
-  m_DoubleSidedGI: 0
-  m_CustomRenderQueue: -1
-  stringTagMap: {}
-  disabledShaderPasses: []
-  m_SavedProperties:
-    serializedVersion: 3
-    m_TexEnvs: []
-    m_Ints: []
-    m_Floats: []
-    m_Colors: []
-  m_BuildTextureStacks: []
---- !u!21 &901237467
-Material:
-  serializedVersion: 6
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: Hidden/TonemappingShader
-  m_Shader: {fileID: 4800000, guid: 7daf9c0cdcb28e8409738055989d15d5, type: 3}
-  m_ShaderKeywords: 
-  m_LightmapFlags: 4
-  m_EnableInstancingVariants: 0
-  m_DoubleSidedGI: 0
-  m_CustomRenderQueue: -1
-  stringTagMap: {}
-  disabledShaderPasses: []
-  m_SavedProperties:
-    serializedVersion: 3
-    m_TexEnvs: []
-    m_Ints: []
-    m_Floats: []
-    m_Colors: []
-  m_BuildTextureStacks: []
 --- !u!1 &907385595
 GameObject:
   m_ObjectHideFlags: 0
@@ -872,6 +831,52 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!21 &1169373763
+Material:
+  serializedVersion: 6
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Hidden/ChromaticAberration
+  m_Shader: {fileID: 4800000, guid: d4f6c00a6f9d2b44bad08e80a96291a0, type: 3}
+  m_ShaderKeywords: 
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs: []
+    m_Ints: []
+    m_Floats: []
+    m_Colors: []
+  m_BuildTextureStacks: []
+--- !u!21 &1237938616
+Material:
+  serializedVersion: 6
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Hidden/TonemappingShader
+  m_Shader: {fileID: 4800000, guid: 7daf9c0cdcb28e8409738055989d15d5, type: 3}
+  m_ShaderKeywords: 
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs: []
+    m_Ints: []
+    m_Floats: []
+    m_Colors: []
+  m_BuildTextureStacks: []
 --- !u!1 &1519603473
 GameObject:
   m_ObjectHideFlags: 0

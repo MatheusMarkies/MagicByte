@@ -8,7 +8,7 @@
 #define saturateMediump(x) min(x, MEDIUMP_FLT_MAX)
 
 //GGX
-float SpecularStrength(Surface surface, BRDF brdf,float3 L,float3 V,float3 N,float3 H) {
+float GGX(Surface surface, BRDF brdf,float3 L,float3 V,float3 N,float3 H) {
 	float3 h = H;
 	float NoH = dot(N, h);
 	float3 NxH = cross(N, h);
@@ -42,7 +42,7 @@ float3 Subsurface(float NoL, float NoV, float LoH, float roughness, Surface surf
 	return ss * surface.subSurfaceColor;
 }
 
-float SpecularStrengthAnisotropy(Surface surface, BRDF brdf, Light light) {
+float GGXAnisotropy(Surface surface, BRDF brdf, Light light) {
 	float at = max(brdf.roughness * (1.0 + surface.anisotropic), 0.005);
 	float ab = max(brdf.roughness * (1.0 - surface.anisotropic), 0.005);
 
@@ -156,9 +156,9 @@ float3 DirectBSDF (Surface surface, BRDF brdf, Light light,float ior) {
 
 	float D = 0;
 	if (surface.anisotropic == 0)
-		D = SpecularStrength(surface, brdf, light.direction, surface.viewDirection, surface.normal, SafeNormalize(light.direction + surface.viewDirection)) * FresnelTransmissionBRDF(IORtoF0(ior), f90, dot(h, surface.viewDirection));
+		D = GGX(surface, brdf, light.direction, surface.viewDirection, surface.normal, SafeNormalize(light.direction + surface.viewDirection)) * FresnelTransmissionBRDF(IORtoF0(ior), f90, dot(h, surface.viewDirection));
 	else
-		D = SpecularStrengthAnisotropy(surface, brdf, light) * FresnelTransmissionBRDF(IORtoF0(ior), f90, dot(h, surface.viewDirection));
+		D = GGXAnisotropy(surface, brdf, light) * FresnelTransmissionBRDF(IORtoF0(ior), f90, dot(h, surface.viewDirection));
 
 	D = lerp(D, CharlieD(brdf.roughness, NoH, surface), surface.sheen) *(surface.metallic);
 
@@ -168,8 +168,11 @@ float3 DirectBSDF (Surface surface, BRDF brdf, Light light,float ior) {
 	D += FresnelSchlick(IORtoF0(ior), f90, dot(h, surface.viewDirection)) * light.color;
 
 	return (D +
-		((lerp(OrenNayar(light.direction, surface.normal, surface.viewDirection, brdf.roughness, surface) * surface.color, Subsurface(NoL, NoV, LoH, brdf.roughness, surface) * 2, surface.subsurface)) * max(1.-surface.metallic, MIN_REFLECTIVITY))
+		(lerp(OrenNayar(light.direction, surface.normal, surface.viewDirection, brdf.roughness, surface) * surface.color * max(1.-surface.metallic, MIN_REFLECTIVITY), 
+			Subsurface(NoL, NoV, LoH, brdf.roughness, surface) * 2, 
+			surface.subsurface))
 		* AshikhminV(NoV, NoL)) * (1.0f/PI);
+
 }
 
 #endif

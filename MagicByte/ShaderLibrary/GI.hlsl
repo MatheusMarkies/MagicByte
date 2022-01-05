@@ -167,7 +167,7 @@ float3 SampleClearCoat(Surface surfaceWS) {
 }
 
 float3 SampleRefract(Surface surfaceWS) {
-	float3 uvw = refract(-surfaceWS.viewDirection, surfaceWS.normal, surfaceWS.ior/10);
+	float3 uvw = refract(-surfaceWS.viewDirection, surfaceWS.normal, surfaceWS.ior);
 	float mip = PerceptualRoughnessToMipmapLevel(1-surfaceWS.smoothness);
 	float4 environment = SAMPLE_TEXTURECUBE_LOD(unity_SpecCube0, samplerunity_SpecCube0, uvw, mip);
 	return DecodeHDREnvironment(environment + chromaticAberrationRefraction(float2(0.002, 0.0005), uvw, mip), unity_SpecCube0_HDR);
