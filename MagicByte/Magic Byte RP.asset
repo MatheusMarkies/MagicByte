@@ -17,7 +17,7 @@ MonoBehaviour:
   SRPBatcher: 1
   Gamma: 2.2
   realtimeShadows:
-    maxDistance: 600
+    maxDistance: 50
     distanceFade: 1
     scatteringBorders: 1.5
     directional:

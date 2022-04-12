@@ -343,6 +343,7 @@ namespace MagicByte
         public float Intensity = 0.5f;
         [Range(0f, 1f)]
         public float Scattering = 1.0f;
+        private float Fog;
 
         public override void preProcessing()
         {
@@ -364,6 +365,7 @@ namespace MagicByte
                 
                 material.SetFloat("_BloomIntensity", Intensity);
                 material.SetFloat("_BloomScattering", Scattering);
+                material.SetFloat("_BloomFog", Fog);
 
                 this.effectMaterial = material;
             }

@@ -43,7 +43,7 @@ float3 getLighting(Surface surfaceWS, BRDF brdf, GI gi) {
 		Light light = GetDirectionalLight(i, surfaceWS, shadowData);
 
 		float3 lightDir = light.direction + surfaceWS.normal;
-		float3 translucency = (pow(saturate(dot(surfaceWS.viewDirection, -lightDir)), 1) * surfaceWS.scatteringScale + gi.diffuse * 1) * light.attenuation;
+		float3 translucency = (pow(saturate(dot(surfaceWS.viewDirection, -lightDir) + gi.diffuse * 1), 1) * surfaceWS.scatteringScale);
 		color += surfaceWS.color * light.color * translucency * (1 - surfaceWS.metallic);
 	}
 
@@ -51,7 +51,7 @@ float3 getLighting(Surface surfaceWS, BRDF brdf, GI gi) {
 		Light light = GetOtherLight(j, surfaceWS, shadowData);
 
 		float3 lightDir = light.direction + surfaceWS.normal;
-		float3 translucency = (pow(saturate(dot(surfaceWS.viewDirection, -lightDir)), 1) * surfaceWS.scatteringScale + gi.diffuse * 1) * light.attenuation;
+		float3 translucency = (pow(saturate(dot(surfaceWS.viewDirection, -lightDir) + gi.diffuse * 1), 1) * surfaceWS.scatteringScale);
 		color += surfaceWS.color * light.color * translucency * (1 - surfaceWS.metallic);
 	}
 

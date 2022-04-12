@@ -1,4 +1,4 @@
-﻿Shader "Magic Byte/Toon" {
+﻿Shader "Hidden/Magic Byte/Toon" {
 	/*
 	These properties can be edited.
     The properties below are connected with Magic Byte's Default LitInput, adding a new one you will also have to add it to the Shader Pass.

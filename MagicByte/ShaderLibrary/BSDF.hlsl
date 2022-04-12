@@ -140,6 +140,25 @@ float3 TransmissionBRDF_Foliage(float3 SSS_Color, float3 L, float3 V, float3 N)
 	float GGX = (a2 / PI) / (d * d);
 	return NoL * GGX * SSS_Color;
 }
+
+float4 GenerateSkinLUT(float NoL, float NoH, float3 SSS_Color, float Wrap, float ScatterWidth, float Shininess){
+	float wrap = Wrap;
+	float scatterWidth = ScatterWidth;
+	float4 scatterColor = float4(SSS_Color, 1);
+	float shininess = Shininess;
+	float NoL_wrap = (NoL + wrap) / (1 + wrap);
+
+	float diffuse = max(NoL_wrap, 0.0);
+	float scatter = smoothstep(0.0, scatterWidth, NoL_wrap) * smoothstep(scatterWidth * 2.0, scatterWidth, NoL_wrap);
+	float specular = pow(NoH, shininess);
+	if (NoL_wrap <= 0) 
+		specular = 0;
+	float4 C;
+	C.rgb = diffuse + scatter * scatterColor;
+	C.a = specular;
+	return C;
+}
+
 float3 DirectBSDF (Surface surface, BRDF brdf, Light light,float ior) {
 
 	float NoL = dot(surface.normal, light.direction);
@@ -168,11 +187,18 @@ float3 DirectBSDF (Surface surface, BRDF brdf, Light light,float ior) {
 	D += FresnelSchlick(IORtoF0(ior), f90, dot(h, surface.viewDirection)) * light.color;
 
 	return (D +
-		(lerp(OrenNayar(light.direction, surface.normal, surface.viewDirection, brdf.roughness, surface) * surface.color * max(1.-surface.metallic, MIN_REFLECTIVITY), 
-			Subsurface(NoL, NoV, LoH, brdf.roughness, surface) * 2, 
-			surface.subsurface))
-		* AshikhminV(NoV, NoL)) * (1.0f/PI);
+		lerp(OrenNayar(light.direction, surface.normal, surface.viewDirection, brdf.roughness, surface) * surface.color
+			* max(1. - surface.metallic, MIN_REFLECTIVITY),
+			Subsurface(NoL, NoV, LoH, brdf.roughness, surface) * 2,
+			surface.subsurface)
+		* AshikhminV(NoV, NoL)) * (1.0f / PI);
 
+	//return (saturate(D * GenerateSkinLUT(NoL, NoH, surface.subSurfaceColor).a +
+	//	lerp(OrenNayar(light.direction, surface.normal, surface.viewDirection, brdf.roughness, surface) * surface.color
+	//		* max(1. - surface.metallic, MIN_REFLECTIVITY),
+	//		Subsurface(NoL, NoV, LoH, brdf.roughness, surface) * 2,
+	//		surface.subsurface) + GenerateSkinLUT(NoL, NoH, surface.subSurfaceColor).rgb)
+	//	* AshikhminV(NoV, NoL)) * (1.0f / PI);
 }
 
 #endif
