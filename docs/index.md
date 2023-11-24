@@ -1,6 +1,6 @@
 ![](https://i.ibb.co/7z3WTYx/Horologium-Logo-DEFIN.png)
 
-![]([https://i.ibb.co/wNMND3D/Phillip-Hat.png](https://i.ibb.co/7Wr7QQj/IMG-3299.jpg))
+![](https://i.ibb.co/7Wr7QQj/IMG-3299.jpg)
 
 # Horologium
 
