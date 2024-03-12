@@ -22,7 +22,7 @@ namespace MagicByte
 		[Range(0.001f, 1f)]
 		public float distanceFade = 1f;
 
-		[Range(0.0f, 1.50f),HideInInspector]
+		[Range(0.0f, 1.50f)]
 		public float scatteringBorders = 0f;
 
 		[System.Serializable]

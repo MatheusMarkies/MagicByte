@@ -15,7 +15,7 @@ float3 Voronoi(float3 pos)
 	d[6] = float3(0, 1, 1);
 	d[7] = float3(1, 1, 1);
 
-	const float maxDisplacement = .518;
+	const float maxDisplacement = .7;//.518; //tweak this to hide grid artefacts
 
 	float3 pf = floor(pos);
 
@@ -49,6 +49,5 @@ void CSMain(uint3 id : SV_DispatchThreadID)
 	Result.GetDimensions(width, height);
 	float2 uv = float2((id.xy + float2(0.5f, 0.5f)) / float2(width, height) * 2.0f - 1.0f);
 	float3 vor = Voronoi(float3(id.x/6, id.y/6, 3));
-
 	Result[id.xy] = float4(vor.r, vor.g, vor.b, 1);
 }

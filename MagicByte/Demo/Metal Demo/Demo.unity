@@ -612,12 +612,12 @@ MonoBehaviour:
     RedMultiply: 1
     GreenMultiply: 1
     BlueMultiply: 1
-  LensFlare: 0
+  LensFlare: 1
   lensflare:
     effectMaterial: {fileID: 366291244}
     passes: 7
     ToID: 665
-    Threshold: 3.8
+    Threshold: 5.3
     GhostIntensity: 0.01
     HaloIntensity: 0.48
     DirtyIntensity: 0.58
@@ -640,7 +640,7 @@ MonoBehaviour:
     Attenuation: 0
     Direction: {x: 0, y: 0, z: 0, w: 0}
     Offset: 0
-  Bloom: 0
+  Bloom: 1
   bloom:
     effectMaterial: {fileID: 9413518}
     passes: 1

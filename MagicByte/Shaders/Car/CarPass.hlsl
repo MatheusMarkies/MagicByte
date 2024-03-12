@@ -48,10 +48,10 @@ Varyings LitPassVertex (Attributes input) {
 	UNITY_TRANSFER_INSTANCE_ID(input, output);
 	TRANSFER_GI_DATA(input, output);
 
-	if (UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _HeightMode) == 0) {
-		input.positionOS.x += getHeight(input.baseUV).x;
-		input.positionOS.y += getHeight(input.baseUV).y;
-	}
+	//if (UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _HeightMode) == 0) {
+		//input.positionOS.x += getHeight(input.baseUV).x;
+		//input.positionOS.y += getHeight(input.baseUV).y;
+	//}
 
 	output.positionWS = TransformObjectToWorld(input.positionOS);
 	output.positionCS = TransformWorldToHClip(output.positionWS);

@@ -63,7 +63,7 @@ namespace MagicByte
 
 		CullingResults cullingResults;
 
-		public ShadowSettings settings;
+		ShadowSettings settings;
 
 		bool useShadowMask;
 
@@ -166,7 +166,10 @@ namespace MagicByte
 			}
 			else
 			{
-				buffer.GetTemporaryRT(dirShadowAtlasId, 1, 1,32, FilterMode.Bilinear, RenderTextureFormat.Shadowmap);
+				buffer.GetTemporaryRT(
+					dirShadowAtlasId, 1, 1,
+					32, FilterMode.Bilinear, RenderTextureFormat.Shadowmap
+				);
 			}
 			if (shadowedOtherLightCount > 0)
 			{
@@ -201,11 +204,15 @@ namespace MagicByte
 		void RenderDirectionalShadows()
 		{
 			int atlasSize = (int)settings.directional.ShadowMapSize;
-
-			buffer.GetTemporaryRT(dirShadowAtlasId, atlasSize, atlasSize,32, FilterMode.Bilinear, RenderTextureFormat.Shadowmap);
-			buffer.SetRenderTarget(dirShadowAtlasId,RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
+			buffer.GetTemporaryRT(
+				dirShadowAtlasId, atlasSize, atlasSize,
+				32, FilterMode.Bilinear, RenderTextureFormat.Shadowmap
+			);
+			buffer.SetRenderTarget(
+				dirShadowAtlasId,
+				RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store
+			);
 			buffer.ClearRenderTarget(true, false, Color.clear);
-			
 			buffer.BeginSample(bufferName);
 			ExecuteBuffer();
 

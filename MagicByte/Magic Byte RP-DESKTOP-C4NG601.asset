@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3b27c286b5bf34242bd296866a298c53, type: 3}
+  m_Name: Magic Byte RP-DESKTOP-C4NG601
+  m_EditorClassIdentifier: 
+  DynamicBatching: 1
+  GPUInstancing: 1
+  SRPBatcher: 1
+  Gamma: 2.2
+  realtimeShadows:
+    maxDistance: 50
+    distanceFade: 1
+    scatteringBorders: 1.5
+    directional:
+      ShadowMapSize: 16384
+      filter: 3
+      cascadeBlend: 1

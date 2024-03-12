@@ -12,14 +12,12 @@ namespace MagicByte
 		CameraRenderer renderer = new CameraRenderer();
 
 		bool DynamicBatching, GPUInstancing;
-		float Gamma;
 		ShadowSettings shadowSettings;
-		public MagicByteRenderPipeline(bool dynamicBatching, bool GPUInstancing, bool SRPBatcher, float Gamma, ShadowSettings shadowSettings)
+		public MagicByteRenderPipeline(bool dynamicBatching, bool GPUInstancing, bool SRPBatcher, ShadowSettings shadowSettings)
 		{
 			this.shadowSettings = shadowSettings;
 			this.DynamicBatching = dynamicBatching;
 			this.GPUInstancing = GPUInstancing;
-			this.Gamma = Gamma;
 			GraphicsSettings.useScriptableRenderPipelineBatching = SRPBatcher;
 			GraphicsSettings.lightsUseLinearIntensity = true;
 
@@ -28,12 +26,9 @@ namespace MagicByte
 
 		protected override void Render(ScriptableRenderContext context, Camera[] cameras)
 		{
-			GraphicsSettings.lightsUseLinearIntensity = (QualitySettings.activeColorSpace == ColorSpace.Linear);
-			GraphicsSettings.lightsUseColorTemperature = true;
-
 			foreach (Camera camera in cameras)
 			{
-				renderer.Render(context, camera, Gamma, DynamicBatching, GPUInstancing, shadowSettings);
+				renderer.Render(context, camera, DynamicBatching, GPUInstancing, shadowSettings);
 			}
 		}
 	}
