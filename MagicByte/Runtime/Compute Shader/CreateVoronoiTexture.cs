@@ -6,6 +6,7 @@ public class CreateVoronoiTexture : MonoBehaviour
 {
     Texture2D texture2D;
     public ComputeShader shader;
+    public int size = 512;
 
     void Start()
     {
@@ -20,7 +21,7 @@ public class CreateVoronoiTexture : MonoBehaviour
     }
     Texture2D RenderTexturetoTexture2D(RenderTexture rTex)
     {
-        Texture2D tex = new Texture2D(512, 512, TextureFormat.RGB24, false);
+        Texture2D tex = new Texture2D(size, size, TextureFormat.RGB24, false);
 
         RenderTexture.active = rTex;
         tex.ReadPixels(new Rect(0, 0, rTex.width, rTex.height), 0, 0);

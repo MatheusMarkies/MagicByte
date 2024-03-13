@@ -7,6 +7,8 @@ namespace MagicByte
 {
     public abstract class Effect
     {
+        [SerializeField]
+        public int queuePosition;
         [HideInInspector]
         public Material effectMaterial;
         [HideInInspector]
@@ -15,6 +17,7 @@ namespace MagicByte
         public int ToID;
         public abstract void preProcessing();
         public abstract void renderPasses(PostProcessingStack postProcessingStack, CommandBuffer buffer, int fromID, int toID, Camera camera);
+        public int getQueuePosition() { return queuePosition; }
 
     }
     [System.Serializable]

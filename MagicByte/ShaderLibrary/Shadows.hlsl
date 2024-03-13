@@ -1,7 +1,7 @@
 ﻿#ifndef CUSTOM_SHADOWS_INCLUDED
 #define CUSTOM_SHADOWS_INCLUDED
 
-#include "../Unity-RenderPipelineCore/ShaderLibrary/Shadow/ShadowSamplingTent.hlsl"
+#include "Core RP/ShaderDependencies/Shadow/ShadowSamplingTent.hlsl"
 
 #if defined(_DIRECTIONAL_PCF3)
 	#define DIRECTIONAL_FILTER_SAMPLES 4

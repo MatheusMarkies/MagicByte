@@ -38,18 +38,21 @@ float4 MetaPassFragment(Varyings input) : SV_TARGET{
 	surface.color = base.rgb;
 	surface.metallic = getMetallic(input.baseUV);
 	surface.smoothness = getSmoothness(input.baseUV);
-	BRDF brdf = GetBRDF(surface);
+	BRDF brdf = getBRDF(surface);
+
+	float alpha = getAlpha(input.baseUV) * (1-min(getTransmission(),0.1));
+
 	float4 meta = 0.0;
 	if (unity_MetaFragmentControl.x) {
-		meta = float4(brdf.diffuse, 1.0);
-		meta.rgb += brdf.specular * brdf.roughness * 0.5;
+		meta = float4(brdf.diffuse, alpha);
+		meta.rgb += brdf.specular * brdf.roughness * 1;//0.5
 		meta.rgb = min(
 			PositivePow(meta.rgb, unity_OneOverOutputBoost), unity_MaxOutputValue
 		);
 	}
 	else if (unity_MetaFragmentControl.y) {
 
-		meta = float4(getEmission(input.baseUV), 1.0);
+		meta = float4(getEmission(input.baseUV), alpha);
 	}
 	return meta;
 }

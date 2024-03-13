@@ -1,8 +1,8 @@
 ﻿#ifndef COMMON_INCLUDED
 #define COMMON_INCLUDED
-
-#include "../Unity-RenderPipelineCore/ShaderLibrary/Common.hlsl"
-#include "../Unity-RenderPipelineCore/ShaderLibrary/CommonMaterial.hlsl"
+//
+#include "Core RP/ShaderDependencies/CommonMaterial.hlsl"
+#include "Core RP/ShaderDependencies/Common.hlsl"
 #include "UnityInput.hlsl"
 
 #define UNITY_MATRIX_M unity_ObjectToWorld
@@ -15,9 +15,9 @@
 	#define SHADOWS_SHADOWMASK
 #endif
 
-#include "../Unity-RenderPipelineCore/ShaderLibrary/UnityInstancing.hlsl"
-#include "../Unity-RenderPipelineCore/ShaderLibrary/SpaceTransforms.hlsl"
-#include "../Unity-RenderPipelineCore/ShaderLibrary/Packing.hlsl"
+#include "Core RP/ShaderDependencies/UnityInstancing.hlsl"
+#include "Core RP/ShaderDependencies/SpaceTransforms.hlsl"
+#include "Core RP/ShaderDependencies/Packing.hlsl"
 
 float3 DecodeNormal (float4 sample, float scale) {
 	#if defined(UNITY_NO_DXT5nm)
@@ -39,6 +39,9 @@ float Square (float x) {
 
 float DistanceSquared(float3 pA, float3 pB) {
 	return dot(pA - pB, pA - pB);
+}
+float Pit(float A, float B) {
+	return sqrt(A * A + B * B);
 }
 
 void ClipLOD (float2 positionCS, float fade) {

@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 1143448123}
-  m_IndirectSpecularColor: {r: 0.68569493, g: 0.67332804, b: 0.48465633, a: 1}
+  m_IndirectSpecularColor: {r: 0, g: 0, b: 0, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -212,20 +212,22 @@ Transform:
   m_LocalRotation: {x: 0.40821788, y: -0.23456968, z: 0.10938163, w: 0.8754261}
   m_LocalPosition: {x: 0, y: 3, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 50, y: -30, z: 0}
---- !u!21 &1637927437
+--- !u!21 &2016334294
 Material:
-  serializedVersion: 6
+  serializedVersion: 8
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Unlit/AdditiveShader
-  m_Shader: {fileID: 4800000, guid: d472f54ee50c7ce46af8f17114369b8a, type: 3}
-  m_ShaderKeywords: 
+  m_Name: Hidden/AdditiveShader
+  m_Shader: {fileID: 4800000, guid: 25887ad0cf745fa4d8bb7eb14b9b41fc, type: 3}
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -323,6 +325,7 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 1, z: -2.91}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 0
@@ -343,11 +346,12 @@ MonoBehaviour:
   pathTracingObjects:
   - {fileID: 2059575766}
   Skybox: {fileID: 2800000, guid: 509b2fbb779d8d047a7c71e2cb3ad46b, type: 3}
-  ImageScale: 1
+  ImageScale: 2
   directionalLight: {fileID: 1143448123}
-  samplesPerPixel: 10
+  samplesPerPixel: 2
   additiveShader: {fileID: 4800000, guid: 25887ad0cf745fa4d8bb7eb14b9b41fc, type: 3}
-  additiveMaterial: {fileID: 1637927437}
+  additiveMaterial: {fileID: 2016334294}
+  renderTextures: []
 --- !u!1001 &2059575765
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -415,8 +419,7 @@ PrefabInstance:
   m_SourcePrefab: {fileID: 100100000, guid: b602673517352e54eb23c7f24ab5803b, type: 3}
 --- !u!1 &2059575766 stripped
 GameObject:
-  m_CorrespondingSourceObject: {fileID: 100002, guid: b602673517352e54eb23c7f24ab5803b,
-    type: 3}
+  m_CorrespondingSourceObject: {fileID: 100002, guid: b602673517352e54eb23c7f24ab5803b, type: 3}
   m_PrefabInstance: {fileID: 2059575765}
   m_PrefabAsset: {fileID: 0}
 --- !u!114 &2059575767
@@ -433,7 +436,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   pathTracingObject:
     Position: {x: 0, y: 0, z: 0, w: 0}
-    indicesCount: 0
+    indicesCount: 1296
     indicesOffset: 0
     localToWorldMatrix:
       e00: -0.87613857
@@ -453,14 +456,14 @@ MonoBehaviour:
       e32: 0
       e33: 1
     MainColor: {x: 0.6698113, y: 0.6540139, z: 0.6540139}
-    Metallic: 0
-    Smoothness: 0
+    Metallic: 0.518
+    Smoothness: 0.513
     Emission: {x: 0, y: 0, z: 0}
     Transmission: 0
-  objectMesh: {fileID: 4300000, guid: b602673517352e54eb23c7f24ab5803b, type: 3}
+  objectMesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
   objectMaterial:
     MainColor: {r: 0.6698113, g: 0.6540139, b: 0.6540139, a: 1}
-    Metallic: 0
-    Smoothness: 0
+    Metallic: 0.518
+    Smoothness: 0.513
     Emission: {r: 0, g: 0, b: 0, a: 0}
     Transmission: 0

@@ -37,14 +37,14 @@ Shader "Hidden/AdditiveShader"
                 float4 vertex : SV_POSITION;
             };
 
-            sampler2D _MainTex;
-            float4 _MainTex_ST;
+            sampler2D _PostFXSource;
+            float4 _PostFXSource_ST;
 
             v2f vert (appdata v)
             {
                 v2f o;
                 o.vertex = UnityObjectToClipPos(v.vertex);
-                o.uv = TRANSFORM_TEX(v.uv, _MainTex);
+                o.uv = TRANSFORM_TEX(v.uv, _PostFXSource);
                 UNITY_TRANSFER_FOG(o,o.vertex);
                 return o;
             }
@@ -52,7 +52,7 @@ Shader "Hidden/AdditiveShader"
 
             fixed4 frag (v2f i) : SV_Target
             {
-            return float4(tex2D(_MainTex, i.uv).rgb, 1.0f / (_Sample + 1.0f));
+            return float4(tex2D(_PostFXSource, i.uv).rgb, 1.0f / (_Sample + 1.0f));
             }
             ENDCG
         }

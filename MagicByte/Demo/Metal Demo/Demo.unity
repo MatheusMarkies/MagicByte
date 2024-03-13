@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.7426253, g: 0.7237407, b: 0.8060437, a: 1}
+  m_IndirectSpecularColor: {r: 0.5007486, g: 0.47391677, b: 0.60370654, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -125,14 +125,15 @@ NavMeshSettings:
   m_NavMeshData: {fileID: 0}
 --- !u!21 &9413518
 Material:
-  serializedVersion: 6
+  serializedVersion: 8
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: Hidden/Bloom
   m_Shader: {fileID: 4800000, guid: b1657e2eff3d46346ab04b5f8a342a93, type: 3}
-  m_ShaderKeywords: 
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -175,6 +176,7 @@ Transform:
   m_LocalRotation: {x: 0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: -0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 911682347}
   m_RootOrder: 1
@@ -211,8 +213,7 @@ ReflectionProbe:
   m_RenderDynamicObjects: 0
   m_UseOcclusionCulling: 1
   m_Importance: 1
-  m_CustomBakedTexture: {fileID: 8900000, guid: 2b2e7e4ee2ddf234d95a5d71729c8d2d,
-    type: 3}
+  m_CustomBakedTexture: {fileID: 8900000, guid: 2b2e7e4ee2ddf234d95a5d71729c8d2d, type: 3}
 --- !u!23 &24253855
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -265,14 +266,15 @@ MeshFilter:
   m_Mesh: {fileID: -2110527070518962502, guid: 80776968980bfcf45a15c90f1a7fe854, type: 3}
 --- !u!21 &366291244
 Material:
-  serializedVersion: 6
+  serializedVersion: 8
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: Hidden/ScreenSpaceLensFlare
   m_Shader: {fileID: 4800000, guid: 17b725e011bc84a40985313fac29aec9, type: 3}
-  m_ShaderKeywords: 
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -288,14 +290,15 @@ Material:
   m_BuildTextureStacks: []
 --- !u!21 &410098363
 Material:
-  serializedVersion: 6
+  serializedVersion: 8
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: Hidden/LightStreak
   m_Shader: {fileID: 4800000, guid: 754d4b2b045162a4682585b4b72a6664, type: 3}
-  m_ShaderKeywords: 
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -402,6 +405,7 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: -1.98, z: 0}
   m_LocalScale: {x: 2.9160457, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 5
@@ -495,6 +499,7 @@ Transform:
   m_LocalRotation: {x: 0.40821788, y: -0.23456968, z: 0.10938163, w: 0.8754261}
   m_LocalPosition: {x: 0, y: 3, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 2
@@ -579,6 +584,7 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 1, z: -7.57}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 0
@@ -597,6 +603,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Tonemapping: 1
   tonemapping:
+    queuePosition: 0
     effectMaterial: {fileID: 1237938616}
     passes: 1
     ToID: 659
@@ -612,12 +619,13 @@ MonoBehaviour:
     RedMultiply: 1
     GreenMultiply: 1
     BlueMultiply: 1
-  LensFlare: 1
+  LensFlare: 0
   lensflare:
+    queuePosition: 0
     effectMaterial: {fileID: 366291244}
     passes: 7
     ToID: 665
-    Threshold: 5.3
+    Threshold: 3.8
     GhostIntensity: 0.01
     HaloIntensity: 0.48
     DirtyIntensity: 0.58
@@ -628,12 +636,14 @@ MonoBehaviour:
     LensDirty: {fileID: 2800000, guid: 0c45df5605cdd1342897f2206844846c, type: 3}
   ChromaticAberration: 1
   chromaticAberration:
+    queuePosition: 0
     effectMaterial: {fileID: 1169373763}
     passes: 1
     ToID: 659
     Distortion: 1.6
   LightStreak: 0
   lightStreak:
+    queuePosition: 0
     effectMaterial: {fileID: 410098363}
     passes: 1
     ToID: 569
@@ -642,13 +652,14 @@ MonoBehaviour:
     Offset: 0
   Bloom: 1
   bloom:
+    queuePosition: 0
     effectMaterial: {fileID: 9413518}
     passes: 1
     ToID: 659
     Levels: 16
-    Threshold: 0.32
-    ThresholdKnee: 0
-    Intensity: 1.09
+    Threshold: 0.57
+    ThresholdKnee: 0.063
+    Intensity: 2.02
     Scattering: 0.95
 --- !u!1 &843603308
 GameObject:
@@ -679,6 +690,7 @@ Transform:
   m_LocalRotation: {x: 0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: -0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 907385596}
   m_RootOrder: 1
@@ -715,8 +727,7 @@ ReflectionProbe:
   m_RenderDynamicObjects: 0
   m_UseOcclusionCulling: 1
   m_Importance: 1
-  m_CustomBakedTexture: {fileID: 8900000, guid: 2b2e7e4ee2ddf234d95a5d71729c8d2d,
-    type: 3}
+  m_CustomBakedTexture: {fileID: 8900000, guid: 2b2e7e4ee2ddf234d95a5d71729c8d2d, type: 3}
 --- !u!23 &843603311
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -793,6 +804,7 @@ Transform:
   m_LocalRotation: {x: 0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 5, y: 0, z: 0}
   m_LocalScale: {x: 3.8736, y: 3.8736, z: 3.8736}
+  m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1519603474}
   - {fileID: 843603309}
@@ -825,6 +837,7 @@ Transform:
   m_LocalRotation: {x: 0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: -5, y: 0, z: 0}
   m_LocalScale: {x: 3.8736, y: 3.8736, z: 3.8736}
+  m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 2104111971}
   - {fileID: 24253853}
@@ -833,14 +846,15 @@ Transform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!21 &1169373763
 Material:
-  serializedVersion: 6
+  serializedVersion: 8
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: Hidden/ChromaticAberration
   m_Shader: {fileID: 4800000, guid: d4f6c00a6f9d2b44bad08e80a96291a0, type: 3}
-  m_ShaderKeywords: 
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -856,14 +870,15 @@ Material:
   m_BuildTextureStacks: []
 --- !u!21 &1237938616
 Material:
-  serializedVersion: 6
+  serializedVersion: 8
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: Hidden/TonemappingShader
   m_Shader: {fileID: 4800000, guid: 7daf9c0cdcb28e8409738055989d15d5, type: 3}
-  m_ShaderKeywords: 
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -905,6 +920,7 @@ Transform:
   m_LocalRotation: {x: 0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: -0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 907385596}
   m_RootOrder: 0
@@ -961,14 +977,17 @@ MeshFilter:
   m_Mesh: {fileID: -275902258083486449, guid: 80776968980bfcf45a15c90f1a7fe854, type: 3}
 --- !u!21 &1933611739
 Material:
-  serializedVersion: 6
+  serializedVersion: 8
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: Plane (Instance)
   m_Shader: {fileID: 4800000, guid: 4a479e118b7959046918f6b4e21c1c33, type: 3}
-  m_ShaderKeywords: _RECEIVE_SHADOWS _SHADOWS_ON
+  m_ValidKeywords:
+  - _RECEIVE_SHADOWS
+  m_InvalidKeywords:
+  - _SHADOWS_ON
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -1110,6 +1129,7 @@ Transform:
   m_LocalRotation: {x: 0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: -0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 911682347}
   m_RootOrder: 0
@@ -1174,6 +1194,7 @@ Transform:
   m_LocalRotation: {x: 0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: -0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1965158524211597965}
   m_RootOrder: 0
@@ -1212,6 +1233,7 @@ Transform:
   m_LocalRotation: {x: 0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 3.8736, y: 3.8736, z: 3.8736}
+  m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1074781692316450656}
   - {fileID: 4792373288357318861}
@@ -1320,6 +1342,7 @@ Transform:
   m_LocalRotation: {x: 0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: -0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1965158524211597965}
   m_RootOrder: 1
@@ -1375,8 +1398,7 @@ ReflectionProbe:
   m_RenderDynamicObjects: 0
   m_UseOcclusionCulling: 1
   m_Importance: 1
-  m_CustomBakedTexture: {fileID: 8900000, guid: 2b2e7e4ee2ddf234d95a5d71729c8d2d,
-    type: 3}
+  m_CustomBakedTexture: {fileID: 8900000, guid: 2b2e7e4ee2ddf234d95a5d71729c8d2d, type: 3}
 --- !u!1 &8729850415728683751
 GameObject:
   m_ObjectHideFlags: 0

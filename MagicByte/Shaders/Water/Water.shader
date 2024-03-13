@@ -1,50 +1,93 @@
 ﻿Shader "Magic Byte/Water" {
-	
+	/*
+	These properties can be edited.
+    The properties below are connected with Magic Byte's Default LitInput, adding a new one you will also have to add it to the Shader Pass.
+	*/
 	Properties {
-		
-		_BaseColor("Water Color",Color) = (0, 0, 0, 1)
-		_WaterBlendColor("Water Blend Color",Color) = (0, 0, 0, 1)
-		_WaterDistanceColor("Water Blend Color",Color) = (0, 0, 0, 1)
+		[HideInInspector] _BaseMap("Texture", 2D) = "white" {}
+		_BaseColor("Color", Color) = (0.83, 0.83, 0.83, 1.0)
+		[HideInInspector]_SubSurfaceColor("Sub Surface Color", Color) = (0.8, 0.43, 0.2, 1.0)
 
-		[NoScaleOffset] _HeightMap("Wave HeightMap",2D) = "white" {}
+		_Cutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
+		[Toggle(_CLIPPING)] _Clipping("Alpha Clipping", Float) = 0
+		[Toggle(_RECEIVE_SHADOWS)] _ReceiveShadows("Receive Shadows", Float) = 1
 
+		[HideInInspector]_Depth("Depth", Float) = 1
 
-		[NoScaleOffset] _Normal("Main Wave Normal",2D) = "bump" {}
+		[HideInInspector][KeywordEnum(On, Clip, Dither, Off)] _Shadows("Shadows", Float) = 0
 
-		_NormalStrength("Normal Strength",Range(0, 1)) = 1
-		_NormalSpeed("Normal Speed",Vector) = (0.5,0,0,0)
-		_NormalSize("Normal Size",Float) = 2
+		[HideInInspector]_Metallic("Metallic", Range(0, 1)) = 0.88
+		[HideInInspector]_Smoothness("Smoothness", Range(0, 1)) = 1.0
 
-		[HideInInspector] _Metallic("Metallic",Range(0, 1)) = 1
-		[HideInInspector] _Smoothness("Smoothness",Range(0, 1)) = 1
+		_WaveColor("Wave Color", Color) = (0.83, 0.83, 0.83, 1.0)
 
-		//_chromaticAberrationUV("Chromatic Aberration UV", Range(0, 0.05)) = 0
+		_WaveMap("Wave Map", 2D) = "white" {}
+		_WaveHeight("Wave Height", Float) = 1
+		_WaveScale("Wave Scale", Float) = 1
+		_WaveSpeed("Wave Speed", Vector) = (1, 1, 0, 0)
 
-		[NoScaleOffset] _NormalSecond("Second Wave Normal",2D) = "bump" {}
+		_Occlusion("Occlusion", Range(0, 1)) = 1
 
-		_DetailNormalStrength("Second Normal Strength",Range(0, 1)) = 1
-		_NormalSecondSpeed("Second Normal Speed",Vector) = (0,0.5,0,0)
-		_NormalSecondSize("Second Normal Size",Float) = 2
+		[HideInInspector]_Sheen("Sheen", Range(0, 1)) = 0
+		[HideInInspector]_SheenTint("Sheen Tint", Range(0, 1)) = 0
+		[HideInInspector]_SubSurface("Sub Surface", Range(0, 1)) = 0
+		[HideInInspector]_Anisotropic("Anisotropic", Range(-0.95,0.95)) = 0.0
+		[HideInInspector]_Transmission("Transmission", Range(0,1)) = 0.0
 
-		[NoScaleOffset] _Emission("Emission",2D) = "white" {}
-        [HDR] _EmissionColor("Emission Color",Color) = (0, 0, 1, 1)
-        _Refraction("Refraction", Range(0,1)) = 0.7
-		_Fresnel("Reflectance", Range(0,1)) = 0.8
+		[NoScaleOffset] _EmissionMap("Emission", 2D) = "white" {}
+		[HDR] _EmissionColor("Emission", Color) = (0.0, 0.0, 0.0, 0.0)
 
-  		[Enum(UnityEngine.Rendering.BlendMode)] _SrcBlend ("Src Blend", Float) = 1
-		[Enum(UnityEngine.Rendering.BlendMode)] _DstBlend ("Dst Blend", Float) = 0
-		[Enum(Off, 0, On, 1)] _ZWrite ("Z Write", Float) = 1
+		[NoScaleOffset] _NormalMap("Main Normal", 2D) = "bump" {}
+		_NormalStrength("Normal Strength", Range(0, 1)) = 1
+		_TillingNormal("Tilling Normal", Vector) = (1, 1, 0, 0)
+		_MainNormalSpeed("Normal Speed", Vector) = (1, 1, 0, 0)
+
+		[NoScaleOffset] _OtherNormalMap("Second Normal", 2D) = "bump" {}
+		_OtherNormalStrength("Second Normal Strength", Range(0, 1)) = 1
+		_SecondTillingNormal("Second Tilling Normal", Vector) = (1, 1, 0, 0)
+		_SecondNormalSpeed("Second Normal Speed", Vector) = (1, 1, 0, 0)
+
+		_IOR("IOR", Range(0, 1)) = 0.1
+
+		[HideInInspector][Enum(UnityEngine.Rendering.BlendMode)] _SrcBlend("Src Blend", Float) = 1
+		[HideInInspector][Enum(UnityEngine.Rendering.BlendMode)] _DstBlend("Dst Blend", Float) = 0
+		[HideInInspector][Enum(Off, 0, On, 1)] _ZWrite("Z Write", Float) = 1
 
 		[HideInInspector] _MainTex("Lightmap Texture", 2D) = "white" {}
 		[HideInInspector] _Color("Lightmap Color", Color) = (0.5, 0.5, 0.5, 1.0)
-
 	}
 	
+	/* Magic Byte Standard Surface:
+	float3 position;
+	float3 normal;
+	float3 interpolatedNormal;
+	float3 viewDirection;
+	float subsurface;
+	float4 tangent;
+	float3 binormal;
+	float3 color;
+	float3 subSurfaceColor;
+	float alpha;
+	float metallic;
+	float smoothness;
+	float occlusion;
+	float ior;
+	float dither;
+	float anisotropic;
+	float sheen;
+	float sheenTint;
+	float depth;
+	float transmission;
+	float clearCoatRoughness;
+	float scatteringScale;
+	*/
+
 	SubShader {
 		HLSLINCLUDE
 		#include "../../ShaderLibrary/Common.hlsl"
 		#include "../LitInput.hlsl"
 		ENDHLSL
+
 		Pass {
 			Tags {
 				"LightMode" = "Meta"
@@ -59,6 +102,7 @@
 			#include "../MetaPass.hlsl"
 			ENDHLSL
 		}
+
 		Pass {
 			Tags {
 				"LightMode" = "MBLit"
@@ -81,7 +125,7 @@
 			#pragma multi_compile_instancing
 			#pragma vertex LitPassVertex
 			#pragma fragment LitPassFragment
-			#include "WaterPass.hlsl"
+			#include "WaterPass.hlsl" //Enter the name of your Pass file
 			ENDHLSL
 		}
 
@@ -103,7 +147,7 @@
 			ENDHLSL
 		}
 
-	
+
 	}
 
 }
