@@ -7,7 +7,7 @@ using UnityEngine.Rendering;
 public class Decal : MonoBehaviour
 {
 
-	CommandBuffer buffer = new CommandBuffer() { name = "Decal" };
+	//CommandBuffer buffer = new CommandBuffer() { name = "Decal" };
 	public enum _Type
     {
 		Normal,
@@ -53,28 +53,28 @@ public class Decal : MonoBehaviour
     public void OnRederDecal(ScriptableRenderContext context)
     {
         int normalsID = Shader.PropertyToID("_NormalsCopy");
-        buffer.GetTemporaryRT(normalsID, -1, -1);
+        //buffer.GetTemporaryRT(normalsID, -1, -1);
 
-        buffer.Blit(BuiltinRenderTextureType.GBuffer2, normalsID);
+        //buffer.Blit(BuiltinRenderTextureType.GBuffer2, normalsID);
 
         if (type == _Type.Diffuse)
         {
-            buffer.SetRenderTarget(BuiltinRenderTextureType.GBuffer0, BuiltinRenderTextureType.CameraTarget);
+            //buffer.SetRenderTarget(BuiltinRenderTextureType.GBuffer0, BuiltinRenderTextureType.CameraTarget);
         }
         if (type == _Type.Normal)
         {
-            buffer.SetRenderTarget(BuiltinRenderTextureType.GBuffer2, BuiltinRenderTextureType.CameraTarget);
+            //buffer.SetRenderTarget(BuiltinRenderTextureType.GBuffer2, BuiltinRenderTextureType.CameraTarget);
         }
 
         if (type == _Type.Dual)
         {
             RenderTargetIdentifier[] RenderId = { BuiltinRenderTextureType.GBuffer0, BuiltinRenderTextureType.GBuffer2 };
-            buffer.SetRenderTarget(RenderId, BuiltinRenderTextureType.CameraTarget);
+            //buffer.SetRenderTarget(RenderId, BuiltinRenderTextureType.CameraTarget);
         }
 
-        buffer.ReleaseTemporaryRT(normalsID);
-        context.ExecuteCommandBuffer(buffer);
-        buffer.Clear();
+        //buffer.ReleaseTemporaryRT(normalsID);
+        //context.ExecuteCommandBuffer(buffer);
+        //buffer.Clear();
     }
 
     void OnDrawGizmos()
